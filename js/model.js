@@ -1,6 +1,6 @@
 // Classroom model: sucrose is impermeant, the bath is a large reservoir,
 // temperature is 25 °C, and the initial cell has no pressure potential.
-export const CELL_PSI = -500;
+export const CELL_PSI = -750;
 export const MAX_CONCENTRATION = 20;
 export const KPA_PER_PERCENT = (10 / 342.3) * 8.314 * 298.15;
 export const BURST_VOLUME = 1.6;
@@ -27,9 +27,9 @@ export function equilibriumVolume(cell, solutionPsi) {
   if (cell === "animal")
     return solutionPsi === 0 ? Infinity : CELL_PSI / solutionPsi;
   if (solutionPsi <= CELL_PSI) return CELL_PSI / solutionPsi;
-  // 3000v² - (3000 + solutionPsi)v - 500 = 0.
+  // 3000v² - (3000 + solutionPsi)v + CELL_PSI = 0.
   const term = 3000 + solutionPsi;
-  return (term + Math.sqrt(term * term + 6000000)) / 6000;
+  return (term + Math.sqrt(term * term - 12000 * CELL_PSI)) / 6000;
 }
 export function createTrial(cell, concentration, initialVolume = 1) {
   if (

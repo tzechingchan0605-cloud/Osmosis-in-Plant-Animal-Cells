@@ -15,7 +15,7 @@ export const translations = {
     animal: "Animal cell",
     animalDetail: "With a nucleus",
     startingPsi: "STARTING CELL WATER POTENTIAL",
-    presetValue: "MODEL VALUE",
+    presetValue: "(Assumed)",
     continuingValue: "CONTINUING CELL",
     chooseSolution: "Adjust the sucrose solution",
     linkedInputs: "Change either value. The other updates automatically.",
@@ -81,7 +81,7 @@ export const translations = {
       "Osmosis is the net movement of water molecules from a region of higher water potential to a region of lower water potential across a differentially permeable membrane.",
     remember: "Things to remember",
     guideWater:
-      "Pure water has a water potential of 0. Adding sucrose makes it more negative. −200 kPa is higher than −500 kPa.",
+      "Pure water has a water potential of 0. Adding sucrose makes it more negative. −200 kPa is higher than −750 kPa.",
     guideBoth:
       "Water moves in both directions. At equal water potential, the rates are equal: there is no net movement.",
     guideWall:
@@ -297,7 +297,7 @@ export const translations = {
     animal: "動物細胞",
     animalDetail: "具細胞核",
     startingPsi: "細胞的起始水勢",
-    presetValue: "模型數值",
+    presetValue: "（假設）",
     continuingValue: "沿用目前細胞",
     chooseSolution: "調整蔗糖溶液",
     linkedInputs: "修改其中一項，另一項便會自動更新。",
@@ -359,7 +359,7 @@ export const translations = {
       "滲透是水分子從水勢較高的區域，穿過差異透性膜，向水勢較低的區域淨移動。",
     remember: "記住這些概念",
     guideWater:
-      "純水的水勢為 0。加入蔗糖會使水勢降低，變成負值。−200 kPa 的水勢比 −500 kPa 高。",
+      "純水的水勢為 0。加入蔗糖會使水勢降低，變成負值。−200 kPa 的水勢比 −750 kPa 高。",
     guideBoth:
       "水分子會向兩個方向移動。當水勢相同時，兩邊的移動速率相同，因此沒有淨移動。",
     guideWall:

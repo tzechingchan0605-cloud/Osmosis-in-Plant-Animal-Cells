@@ -43,9 +43,9 @@ test("The linked inputs round-trip and pure water has zero water potential", () 
 });
 test("Tonicity compares water potential with correct ordering of negative values", () => {
   assert.equal(classify(-200), "hypo");
-  assert.equal(classify(-500), "iso");
+  assert.equal(classify(-750), "iso");
   assert.equal(classify(-900), "hyper");
-  assert.equal(classify(-500.4), "iso");
+  assert.equal(classify(-750.4), "iso");
 });
 test("Equal water potential preserves both cell models", () => {
   for (const cell of ["animal", "plant"]) {
@@ -57,7 +57,7 @@ test("Equal water potential preserves both cell models", () => {
 });
 test("Pure water makes the plant turgid while pressure balances inward osmosis", () => {
   const trial = finish(createTrial("plant", 0));
-  assert.ok(trial.volume > 1 && trial.volume < 1.2);
+  assert.ok(trial.volume > 1 && trial.volume < 1.3);
   assert.equal(trial.burst, false);
   assert.equal(outcome(trial), "turgid");
   assert.ok(Math.abs(cellPotential("plant", trial.volume)) < 1e-7);
@@ -67,7 +67,7 @@ test("Pure water ruptures the animal cell; mild hypotonic solution does not", ()
   assert.equal(burst.volume, BURST_VOLUME);
   assert.equal(burst.burst, true);
   assert.equal(outcome(burst), "lysed");
-  const mild = finish(createTrial("animal", 5));
+  const mild = finish(createTrial("animal", 8));
   assert.ok(mild.volume > 1 && mild.volume < BURST_VOLUME);
   assert.equal(mild.burst, false);
   assert.equal(outcome(mild), "swollen");
@@ -78,7 +78,7 @@ test("Pure water ruptures the animal cell; mild hypotonic solution does not", ()
 test("Strong hypertonic solution produces plasmolysis or a shrunken wrinkled cell", () => {
   for (const cell of ["animal", "plant"]) {
     const trial = finish(createTrial(cell, 20));
-    assert.ok(trial.volume < 0.5);
+    assert.ok(trial.volume < 0.6);
     assert.equal(trial.burst, false);
     assert.equal(outcome(trial), cell === "plant" ? "plasmolysed" : "wrinkled");
     assert.ok(

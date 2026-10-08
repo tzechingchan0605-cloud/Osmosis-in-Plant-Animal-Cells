@@ -24,7 +24,7 @@ function stepParticles(particles, trial, seconds, advanceCell = false) {
 
 test("Two chloroplasts and all pink cytoplasm dots stay inside the membrane and outside the vacuole at every cell size", () => {
   for (const width of [160, 360, 510]) {
-    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.1455]) {
+    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.1455, 1.2072]) {
       const geometry = cellGeometry(width, 320, { cell: "plant", volume });
       assert.equal(geometry.chloroplasts.length, 2);
       for (const c of [...geometry.chloroplasts, geometry.vacuole]) {
@@ -250,7 +250,7 @@ test("Turgid walls bow outward with an attached membrane, and the nucleus remain
   for (const width of [160, 360, 510]) {
     const initial = cellGeometry(width, 320, { cell: "plant", volume: 1 });
     const initialWall = { ...initial, outline: initial.wallOutline };
-    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.08, 1.1455]) {
+    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.08, 1.1455, 1.2072]) {
       const geometry = cellGeometry(width, 320, { cell: "plant", volume });
       if (volume > 1) {
         const wall = { ...geometry, outline: geometry.wallOutline };
@@ -317,7 +317,7 @@ test("Net transport uses conserved molecules in all directions, then balances at
   for (const [cell, concentration] of [
     ["plant", 0],
     ["plant", 20],
-    ["animal", 5],
+    ["animal", 8],
     ["animal", 20],
   ]) {
     let trial = createTrial(cell, concentration);

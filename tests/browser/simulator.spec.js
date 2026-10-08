@@ -32,15 +32,25 @@ test("Concentration and water potential update each other and reject invalid inp
     concentrationToPotential(10),
     0,
   );
-  await page.locator("#potential").fill("-500");
+  await page.locator("#potential").fill("-750");
   expect(Number(await page.locator("#concentration").inputValue())).toBeCloseTo(
-    potentialToConcentration(-500),
+    potentialToConcentration(-750),
     2,
   );
+  await expect(page.locator("#initial-potential")).toHaveText("−750 kPa");
+  await expect(page.locator(".fixed-pill")).toHaveText("(Assumed)");
+  await expect(page.locator("#before-canvas")).toHaveAttribute(
+    "data-cell-potential",
+    "-750",
+  );
+  await page.locator("#language-button").click();
+  await expect(page.locator(".fixed-pill")).toHaveText("（假設）");
+  await page.locator("#language-button").click();
   await page.locator("#potential").fill("50");
   await expect(page.locator("#input-error")).toBeVisible();
   await expect(page.locator("#start-button")).toBeDisabled();
   await page.locator('[data-preset="equal"]').click();
+  await expect(page.locator("#potential")).toHaveValue("-750");
   await expect(page.locator("#input-error")).toBeHidden();
   await expect(page.locator("#start-button")).toBeEnabled();
   await page.locator("#concentration").fill("21");
@@ -158,7 +168,7 @@ test("Animal cells show lysis in pure water and wrinkles in concentrated sucrose
   await expect(page.locator("#speed, #extension-speed")).toHaveCount(0);
   await expect(page.locator("#before-canvas")).toHaveAttribute(
     "data-cell-potential",
-    "-500",
+    "-750",
   );
   await startAndFinish(page);
   await expect(page.locator("#conclusion")).toContainText(
@@ -212,7 +222,7 @@ test("Pause preserves the cell state; resume, reset and language switching work 
   const psi = await page
     .locator("#after-canvas")
     .getAttribute("data-cell-potential");
-  expect(Number(psi)).toBeLessThan(-500);
+  expect(Number(psi)).toBeLessThan(-750);
   const volume = await page.locator("#after-volume").textContent();
   await page.waitForTimeout(300);
   await expect(page.locator("#after-volume")).toHaveText(volume);
@@ -303,7 +313,7 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   expect(await snapshot()).toEqual(paused);
   await page.locator("#start-button").click();
   await expect(page.locator("#result-card")).toBeVisible();
-  await expect.poll(async () => (await snapshot()).inside).toBe(7);
+  await expect.poll(async () => (await snapshot()).inside).toBe(11);
   const complete = await snapshot();
   const insidePsi = Number(
     await page.locator("#after-canvas").getAttribute("data-cell-potential"),
@@ -314,7 +324,7 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   expect(insidePsi).toBeCloseTo(solutionPsi, 6);
   await expect(page.locator("#before-canvas")).toHaveAttribute(
     "data-cell-potential",
-    "-500",
+    "-750",
   );
   expect(complete.water.map((p) => p.id)).toEqual(
     initial.water.map((p) => p.id),

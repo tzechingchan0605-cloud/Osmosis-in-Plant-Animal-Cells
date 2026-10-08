@@ -210,18 +210,6 @@ export function drawChamber(
       ctx.strokeStyle = "#4d9637";
       ctx.lineWidth = 1.2;
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(
-        chloroplast.x - chloroplast.rx * 0.25,
-        chloroplast.y - chloroplast.ry * 0.65,
-      );
-      ctx.quadraticCurveTo(
-        chloroplast.x + chloroplast.rx * 0.45,
-        chloroplast.y,
-        chloroplast.x + chloroplast.rx * 0.25,
-        chloroplast.y + chloroplast.ry * 0.65,
-      );
-      ctx.stroke();
       ctx.restore();
     }
     if (labels) {
@@ -369,23 +357,33 @@ export function drawChamber(
         ? t("membraneBroken")
         : `${t("cellPsiShort")}: ${number(cellPsi)} ${potentialUnit}`),
   );
-  const badge = (title, value, x, y, maxWidth) => {
-    const fontSize = maxWidth < 95 ? 9 : 11;
+  const roundedPotential = (value) =>
+    Number((value * potentialScale).toFixed(potentialDigits));
+  const difference =
+    cellPsi === null
+      ? 0
+      : roundedPotential(cellPsi) - roundedPotential(trial.solutionPsi);
+  const cellColor =
+    difference > 0 ? "#248146" : difference < 0 ? "#b32b2b" : "#000000";
+  const solutionColor =
+    difference < 0 ? "#248146" : difference > 0 ? "#b32b2b" : "#000000";
+  const badge = (title, value, x, y, maxWidth, valueColor) => {
+    const fontSize = (maxWidth < 95 ? 9 : 11) / 2;
     ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
     ctx.textAlign = "center";
     const lines = [title, `${number(value)} ${potentialUnit}`];
     const width = Math.min(
       maxWidth,
-      Math.max(...lines.map((line) => ctx.measureText(line).width)) + 14,
+      Math.max(...lines.map((line) => ctx.measureText(line).width)) + 8,
     );
     ctx.fillStyle = "#ffffffdf";
     ctx.beginPath();
-    ctx.roundRect(x - width / 2, y, width, 32, 5);
+    ctx.roundRect(x - width / 2, y, width, 18, 3);
     ctx.fill();
-    ctx.fillStyle = "#36586b";
-    lines.forEach((line, i) =>
-      ctx.fillText(line, x, y + 12 + i * 13, width - 8),
-    );
+    lines.forEach((line, i) => {
+      ctx.fillStyle = i === 0 ? "#36586b" : valueColor;
+      ctx.fillText(line, x, y + 7 + i * 7, width - 4);
+    });
   };
   badge(
     t("solutionPsiShort"),
@@ -393,9 +391,17 @@ export function drawChamber(
     Math.min(72, w * 0.23),
     6,
     w * 0.43,
+    solutionColor,
   );
   if (cellPsi !== null) {
     const top = boundaryAt(geometry, -Math.PI / 2).y;
-    badge(t("cellPsiShort"), cellPsi, cx, top + 8, Math.min(130, base * 1.3));
+    badge(
+      t("cellPsiShort"),
+      cellPsi,
+      cx,
+      top + 8,
+      Math.min(130, base * 1.3),
+      cellColor,
+    );
   }
 }
