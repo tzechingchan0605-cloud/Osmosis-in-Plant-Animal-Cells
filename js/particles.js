@@ -391,12 +391,16 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
     beginBurstMixing(state, geometry);
   if (!trial.burst) {
     const waterCount = state.molecules.filter((p) => p.type === "water").length;
+    // In fresh turgid plant diagrams, water-dot occupancy follows the visible
+    // vacuole area. This preserves dot density as it enlarges and makes intake
+    // clear; the numerical volume/potential model remains independent.
+    const waterRatio =
+      trial.cell === "plant" && state.initialVolume === 1 && trial.volume > 1
+        ? geometry.vacuoleAreaRatio
+        : trial.volume / state.initialVolume;
     const target = Math.max(
       3,
-      Math.min(
-        waterCount - 8,
-        Math.round((state.initialInside * trial.volume) / state.initialVolume),
-      ),
+      Math.min(waterCount - 8, Math.round(state.initialInside * waterRatio)),
     );
     const difference = target - projectedInside(state);
     const changing = trial.status === "running" && trial.tone !== "iso";
@@ -475,8 +479,9 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
     transfer.elapsed += dt;
     const progress = Math.min(1, transfer.elapsed / transfer.duration);
     const edge = boundaryAt(geometry, transfer.angle);
-    if (progress < 0.5) {
-      const f = progress * 2;
+    const crossingFraction = transfer.intoVacuole ? 0.2 : 0.5;
+    if (progress < crossingFraction) {
+      const f = progress / crossingFraction;
       const startDistance = transfer.entering
         ? Math.max(transfer.startDistance, edge.distance + 4)
         : edge.distance * Math.min(0.97, transfer.startFraction);
@@ -486,7 +491,7 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
       p.y = startY + (edge.y - startY) * f;
     } else {
       crossMembrane(p, state, transfer);
-      const f = progress * 2 - 1;
+      const f = (progress - crossingFraction) / (1 - crossingFraction);
       const endDistance = transfer.entering
         ? Math.min(transfer.distance, edge.distance * 0.65)
         : Math.max(transfer.distance, edge.distance + 12);

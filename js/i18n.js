@@ -4,7 +4,7 @@ export const translations = {
     labTag: "BIOLOGY, MADE VISIBLE",
     guide: "How it works",
     eyebrow: "F.4 BIOLOGY · INTERACTIVE LAB",
-    headline: "Follow the water.",
+    headline: "Microscopic osmosis",
     subtitle:
       "One solution. Two kinds of cell. Discover what changes — and why.",
     introNote: "Choose. Predict. Observe.\nLet the molecules tell the story.",
@@ -264,7 +264,7 @@ export const translations = {
     labTag: "讓生物學看得見",
     guide: "滲透原理",
     eyebrow: "中四生物 · 互動實驗室",
-    headline: "跟着水分子，觀察變化。",
+    headline: "微觀滲透",
     subtitle: "同一溶液，兩種細胞。探索細胞如何改變，以及背後的原因。",
     introNote: "選擇、預測、觀察。\n讓水分子的移動解釋細胞變化。",
     setup: "設定你的實驗",

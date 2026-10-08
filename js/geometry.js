@@ -344,6 +344,7 @@ export function cellGeometry(width, height, trial) {
     innerH,
     commands,
     vacuole,
+    vacuoleAreaRatio: vacuoleScale ** 2,
     nucleus,
     chloroplasts,
     outline,

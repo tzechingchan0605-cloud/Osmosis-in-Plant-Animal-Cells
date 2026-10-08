@@ -334,7 +334,7 @@ export function drawChamber(
       ctx.fillStyle = flashing
         ? "#0b5e83"
         : vacuoleIntake
-          ? "#3999bbbb"
+          ? "#2993b8"
           : p.inside && !trial.burst
             ? "#3999bba6"
             : "#459fc27a";
@@ -342,11 +342,16 @@ export function drawChamber(
       ctx.arc(
         p.x,
         p.y,
-        vacuoleIntake ? 3.2 : flashing ? 3.0 : 2.5,
+        vacuoleIntake ? 4.2 : flashing ? 3.0 : 2.5,
         0,
         Math.PI * 2,
       );
       ctx.fill();
+      if (vacuoleIntake) {
+        ctx.strokeStyle = "#ffffffc0";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
     } else if (solute === "salt") {
       ctx.fillStyle = "#c9a057a0";
       ctx.beginPath();

@@ -152,6 +152,67 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#notebook-empty")).toBeVisible();
 });
 
+test("Notebook headings and historical values stay aligned while outdated unversioned scripts are excluded", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("osmosis-language", "zh");
+    sessionStorage.setItem(
+      "osmosis-trials",
+      JSON.stringify([
+        {
+          cell: "plant",
+          concentration: 19.7,
+          initialPsi: -500,
+          initialVolume: 1,
+          volume: 0.35,
+          solutionPsi: -1426.6,
+          tone: "hyper",
+          status: "complete",
+          burst: false,
+        },
+        {
+          cell: "animal",
+          concentration: 4.3,
+          initialVolume: 1,
+          volume: 1.6,
+          solutionPsi: -311.4,
+          tone: "hypo",
+          status: "complete",
+          burst: true,
+        },
+      ]),
+    );
+  });
+  const staleRequests = [];
+  await page.route(/\/js\/[^/?]+\.js$/, (route) => {
+    staleRequests.push(route.request().url());
+    return route.abort();
+  });
+  await page.reload();
+  const headings = page.locator("#notebook-table-wrap th");
+  await expect(headings).toHaveCount(7);
+  await expect(headings.nth(2)).toHaveText("細胞起始水勢");
+  await expect(headings.nth(4)).toHaveText("溶液起始水勢");
+  const first = page.locator("#trials-body tr").first().locator("td");
+  const second = page.locator("#trials-body tr").last().locator("td");
+  await expect(first).toHaveCount(7);
+  await expect(second).toHaveCount(7);
+  await expect(first.nth(2)).toHaveText("−500 kPa");
+  await expect(first.nth(3)).toContainText("19.7% · 高滲溶液");
+  await expect(first.nth(4)).toHaveText("−1,426.6 kPa");
+  await expect(first.nth(5)).toHaveText("離開細胞");
+  await expect(second.nth(2)).toHaveText("—");
+  await expect(second.nth(3)).toContainText("4.3% · 低滲溶液");
+  await expect(second.nth(4)).toHaveText("−311.4 kPa");
+  await expect(second.nth(5)).toHaveText("進入細胞");
+  await page.locator("#language-button").click();
+  await expect(headings.nth(2)).toHaveText("Initial cell Ψ");
+  await expect(headings.nth(4)).toHaveText("Initial solution Ψ");
+  await expect(first.nth(2)).toHaveText("−500 kPa");
+  expect(staleRequests).toEqual([]);
+});
+
 test("Animal cells show lysis in pure water and wrinkles in concentrated sucrose", async ({
   page,
 }) => {

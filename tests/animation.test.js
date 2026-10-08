@@ -353,10 +353,13 @@ test("Net transport uses conserved molecules in all directions, then balances at
       equilibrium.water.map((p) => p.id),
       ids,
     );
-    assert.equal(
-      equilibrium.inside,
-      Math.round(particles.initialInside * trial.volume),
-    );
+    if (cell === "plant" && concentration === 0)
+      assert.ok(equilibrium.inside >= particles.initialInside + 8);
+    else
+      assert.equal(
+        equilibrium.inside,
+        Math.round(particles.initialInside * trial.volume),
+      );
     assert.equal(
       equilibrium.crossings.in - equilibrium.crossings.out,
       equilibrium.inside - particles.initialInside,
@@ -410,9 +413,9 @@ test("Turgid plant cells show multiple incoming water molecules for several seco
     }
   }
   assert.ok(dominantSeconds >= 4);
-  assert.ok(largestDifference >= 3);
-  assert.ok(peakIncoming >= 4);
-  assert.ok(vacuoleArrivals >= 4);
+  assert.ok(largestDifference >= 7);
+  assert.ok(peakIncoming >= 8);
+  assert.ok(vacuoleArrivals >= 8);
   assert.equal(trial.status, "complete");
   const final = particleSnapshot(particles);
   assert.deepEqual(
