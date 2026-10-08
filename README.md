@@ -23,20 +23,30 @@ All application asset paths are relative, so the simulator works under a reposit
 
 ### Core lab
 
-1. Choose a plant cell or an animal cell (a red blood cell).
+1. Choose a plant cell or a nucleated animal cell.
 2. Change either sucrose concentration or solution water potential. The linked field and schematic particle density update automatically.
 3. Predict the net movement of water, then start, pause or resume the simulation.
 4. Compare the starting and final cells at the same drawing scale, and read the three-point conclusion.
 5. Replace a shrunken plant cell's solution with distilled water to observe recovery. This retains the existing cell; Reset restores the original cell.
 6. Use the notebook to compare up to 12 completed trials in the current browser session.
 
+Playback is fixed at **0.5×** in the core lab and extension, with no speed selector. Pausing immediately displays **解釋你的觀察結果 / Explain your observations** for the current cell state; final conclusions and notebook records appear when a trial completes.
+
 The top-right language control translates controls, diagrams, feedback and saved notebook entries while preserving the current experiment.
 
-The starting plant membrane is flush with the cell wall. During plasmolysis, its four rounded corners retain contact with the wall while the sides bow inward and the vacuole becomes smaller. The wall has a slight illustrated inward bow; its movement is much smaller than the membrane's retraction. This is the attachment pattern chosen for the teaching diagram; real attachment patterns can vary.
+The starting plant membrane is flush with the cell wall. During plasmolysis, its four rounded corners retain contact with the wall while the sides bow inward. The vacuole becomes smaller and gradually shifts toward the right membrane, while the nucleus moves nearer the centre. Their boundaries remain separate throughout the transition. The wall has a slight illustrated inward bow; its movement is much smaller than the membrane's retraction. This is the attachment pattern chosen for the teaching diagram; real attachment patterns can vary.
+
+The main animal-cell diagram has a nucleus and uses **burst / 爆裂**, with release of cytoplasm. **Haemolysis / 溶血** is specific to RBCs. The extension retains anucleate RBCs. Both main cell types have stationary pink cytoplasm dots, separate from the moving blue water and yellow sucrose particles. Exactly two green chloroplasts remain within the plant cytoplasm, outside its vacuole.
+
+As the cell becomes turgid (硬脹), the wall bows slightly outward and the membrane stays against its inner surface. The vacuole enlarges visibly to fill most of the cell and pushes the nucleus into a pocket of cytoplasm at the side, with a visible gap between nucleus and vacuole. The nucleus remains within the membrane throughout the animation.
 
 Water molecules keep their identities and move across the membrane from around the whole cell. Equal inward and outward exchanges continue in the starting view and at equilibrium; during osmosis, additional transfers change the amount of water inside. Starting, pausing and changing language preserve the particles. Resetting or changing the experiment prepares a fresh population. Leader lines have horizontal ends beside their labels.
 
 Water-dot density is reduced by approximately 25% for clarity. At equilibrium all water dots use the same schematic speed, with at most two simultaneous matched inward/outward pairs. The matched molecules cross together without changing the total amount of water inside. The core diagram shows blue water and yellow sucrose particles; the small grey internal-solute dots are omitted.
+
+Both diagrams show the cell and solution water potentials. The reference stays at its initial value; the live cell value changes with volume and reaches the solution value at equilibrium. Extension labels use the actual kPa values, independently of the enlarged shape changes. Water dots turn dark blue for **0.5 seconds of active real time** on membrane contact; pausing freezes this effect. More simultaneous exchanges are visible during net osmosis, with inward paths reaching the vacuole in turgid plant cells.
+
+Cell lysis opens a ragged gap through the animal cell, separates membrane remnants, and releases cytoplasm. The existing water dots then redistribute continuously across the shared solution, with the same colour and similar density in the former cell region and outside. There is no separately enclosed cell potential after rupture, so its intracellular label disappears.
 
 Conclusion key terms appear in red in both languages, including net movement and its direction, equilibrium, and the observed cell state. The same highlighting style is used for the extension's X/Y/Z results.
 
@@ -46,17 +56,19 @@ Conclusion key terms appear in red in both languages, including net movement and
 
 The activity distinguishes a proposed hypothesis (individual RBCs may have different initial water potentials), predictions, simulation observations and conditional inferences. It assumes the cells began with comparable regular shapes, A remained unchanged, and B shrank by osmosis. The photo alone does not establish the saline conditions, initial cell potentials, or cause of the shape differences.
 
-All extension cells share **0.9% saline with a given water potential of −0.794 MPa**. This teacher-provided value is independent of the sucrose calculation in the core lab.
+All extension cells share **0.9% saline with a given water potential of −794 kPa**. This teacher-provided value is independent of the sucrose calculation in the core lab.
 
-| Cell                  | Initial water potential | Initial net movement | Model outcome                   |
-| --------------------- | ----------------------- | -------------------- | ------------------------------- |
-| X                     | −0.794 MPa              | None                 | Unchanged                       |
-| Y                     | −0.810 MPa              | Into the cell        | Slight swelling, +2.02% volume  |
-| Z, additional control | −0.780 MPa              | Out of the cell      | Slight shrinking, −1.76% volume |
+| Cell                  | Initial water potential | Initial net movement | Model outcome                  |
+| --------------------- | ----------------------- | -------------------- | ------------------------------ |
+| X                     | −794 kPa                | None                 | Unchanged                      |
+| Y                     | −700 kPa                | Out of the cell      | Shrinking, −11.84% volume      |
+| Z, additional control | −810 kPa                | Into the cell        | Slight swelling, +2.02% volume |
 
-The specified X/Y test demonstrates why a **lower** initial cell water potential does not explain shrinking in this solution. The higher-potential Z control supplies a testable comparison. A final checkpoint asks students to infer equal versus higher initial potential, with feedback that explains the direction of osmosis.
+The X/Y test shows why a cell with a **higher** initial water potential loses water and shrinks in the same saline that is isotonic to X. The lower-potential Z control shows the opposite result. A final checkpoint asks students to infer equal versus higher initial potential, with feedback that explains the direction of osmosis.
 
-The extension enlarges small shape changes sixfold for visibility. Its numerical volume changes are not enlarged. All completed cells reach equilibrium at −0.794 MPa while water continues moving in both directions. These timings and graphics are schematic rather than measurements of biological rates.
+Stages **01–04 are clickable, keyboard-accessible review buttons**. Students can revisit the photo, hypothesis, simulation or explanation while retaining their answers and completed results. Leaving an unfinished test pauses it; returning offers Resume. Stage 03 can preview the initial cells before starting, and stage 04 explains when tests have not yet supplied observations.
+
+Cell Y is drawn at its actual relative size change. The small shape change in Z is enlarged sixfold for visibility; its numerical volume change is not enlarged. All completed cells reach equilibrium at −794 kPa while water continues moving in both directions. These timings and graphics are schematic rather than measurements of biological rates.
 
 ## Scientific assumptions
 
@@ -65,12 +77,12 @@ The extension enlarges small shape changes sixfold for visibility. Its numerical
 - At 25°C, the ideal-solution approximation is `Ψ = −CRT ≈ −72.416 × concentration(%) kPa`, using sucrose molar mass 342.3 g/mol. Accuracy decreases at higher concentrations; this is not a conversion table from the textbook.
 - Fresh core-lab cells start at **−500 kPa**, with a fixed amount of impermeant internal solute. This is an illustrative comparative model value, not the measured potential of every real cell. Their water potentials change during osmosis.
 - The bath is a large reservoir whose concentration stays constant. Sucrose does not cross the cell membrane in this model. The cell wall is freely permeable to water and sucrose, so both can enter the space between wall and membrane during plasmolysis. The wall is not used as a particle barrier.
-- Animal-cell solute potential changes inversely with relative water volume. The illustrative red-blood-cell rupture threshold is 1.6 times its starting volume; mild hypotonic solutions can produce swelling without haemolysis.
+- Animal-cell solute potential changes inversely with relative water volume. The illustrative animal-cell rupture threshold is 1.6 times its starting volume; mild hypotonic solutions can produce swelling without bursting.
 - Plant-cell potential combines the solute term with an illustrative rising pressure term above starting volume: `Ψcell = −500/V + max(0, V − 1) × 3000 kPa`. The pressure term resists expansion and permits equilibrium in pure water. The stiff wall contains changing cell contents, with a small illustrated inward flex during plasmolysis; the volume display refers to those contents, not wall-enclosed volume.
 - Fresh plant cells start in a flaccid reference state. Water loss can cause flaccidity before marked plasmolysis; obvious plasmolysis is represented below relative contents volume 0.9.
 - Water moves in both directions, including at equilibrium. Numerical core-lab values within 1 kPa are treated as equal to account for rounded inputs.
 - Tonicity is recorded relative to each cell at the **start of that trial**, even after equilibrium. For a recovery trial the starting cell is the existing shrunken cell.
-- The extension conserves each RBC's initial impermeant solute independently: `Ψcell = Ψinitial/V`, so equilibrium volume is `V = Ψinitial/Ψsaline`. It uses MPa, not the core lab's kPa.
+- The extension conserves each RBC's initial impermeant solute independently: `Ψcell = Ψinitial/V`, so equilibrium volume is `V = Ψinitial/Ψsaline`. Both activities use kPa; the saline value is given independently of the sucrose calculation.
 
 ## Textbook and image references
 
@@ -89,7 +101,7 @@ npm test
 npm run test:browser
 ```
 
-The model and animation suites cover the concentration conversion, direction of osmosis, isotonic states, plant pressure equilibrium, red-blood-cell rupture, plasmolysis, recovery and the extension's X/Y/Z outcomes. They also check initial membrane–wall contact, persistent corner attachments, conserved water identities, exchanges in all four quadrants, balanced equilibrium, and wall permeability to water and sucrose while the membrane excludes sucrose. The browser suite exercises linked inputs, invalid values, animation controls, persistent particles across Start/pause/language changes, both languages, predictions, notebook persistence, mobile layout, photo leader lines and attribution, and the complete extension with final feedback.
+The model and animation suites cover the concentration conversion, direction of osmosis, isotonic states, plant pressure equilibrium, animal-cell rupture, plasmolysis, recovery and the extension's X/Y/Z outcomes. They also check initial membrane–wall contact, persistent corner attachments, conserved water identities, exchanges in all four quadrants, balanced equilibrium, half-second contact flashes independent of playback speed, water mixing after cell rupture, nucleus–vacuole separation, and wall permeability to water and sucrose while the membrane excludes sucrose. The browser suite exercises linked inputs, invalid values, animation controls, persistent particles across Start/pause/language changes, both languages, predictions, notebook persistence, mobile layout, photo leader lines and attribution, and the complete extension with final feedback.
 
 Browser tests use `/usr/bin/chromium` when available. On another machine install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Test reports and dependency directories are ignored by Git.
 

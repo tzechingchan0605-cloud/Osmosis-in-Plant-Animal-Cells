@@ -6,8 +6,9 @@ const executable =
   (existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : undefined);
 export default defineConfig({
   testDir: "./tests/browser",
-  timeout: 30000,
-  expect: { timeout: 18000 },
+  // Playback is deliberately fixed at 0.5×, including recovery and extension.
+  timeout: 75000,
+  expect: { timeout: 30000 },
   workers: 2,
   reporter: "list",
   use: {

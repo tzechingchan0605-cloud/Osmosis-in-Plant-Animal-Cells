@@ -37,6 +37,8 @@ test("The extension tests the lower-potential misconception and supports a corre
   await page.goto("/");
   await page.locator("#extension-button").click();
   await page.locator("#extension-next-1").click();
+  await expect(page.locator("#extension-step-2")).toContainText("−700 kPa");
+  await expect(page.locator("#extension-step-2")).not.toContainText("MPa");
   await page.locator("#extension-hypothesis").selectOption("lower");
   await page
     .locator("#extension-reason")
@@ -54,20 +56,51 @@ test("The extension tests the lower-potential misconception and supports a corre
   await expect(page.locator("#extension-test-result")).toBeVisible();
   await expect(page.locator("#extension-volume-x")).toHaveText("體積：0.00%");
   await expect(page.locator("#extension-volume-other")).toHaveText(
+    "體積：−11.84%",
+  );
+  await expect(page.locator("#extension-result-title")).toHaveText(
+    "細胞 Y 失水並萎縮。",
+  );
+  await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
+    "data-solution-potential",
+    "-794",
+  );
+  await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
+    "data-cell-potential",
+    "-794",
+  );
+  await expect(page.locator("#extension-result-points .key-point")).toHaveText([
+    "速率相同",
+    "維持不變",
+    "高",
+    "淨",
+    "離開 Y",
+    "減少",
+    "沒有淨移動",
+  ]);
+  await page.locator("#extension-lower-test").click();
+  await expect(page.locator("#extension-test-result")).toBeVisible();
+  await expect(page.locator("#extension-volume-other")).toHaveText(
     "體積：+2.02%",
   );
   await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 Y 吸水，並未萎縮。",
-  );
-  await page.locator("#extension-higher-test").click();
-  await expect(page.locator("#extension-test-result")).toBeVisible();
-  await expect(page.locator("#extension-volume-other")).toHaveText(
-    "體積：−1.76%",
-  );
-  await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 Z 失水並輕微萎縮。",
+    "細胞 Z 吸水，並未萎縮。",
   );
   await page.locator("#extension-to-explain").click();
+  await expect(page.locator("#extension-summary-body tr")).toHaveCount(3);
+  await expect(
+    page.locator("#extension-summary-body tr td:nth-child(2)"),
+  ).toHaveText(["−794", "−700", "−810"]);
+  await page.locator('[data-extension-step="1"]').click();
+  await expect(page.locator("#extension-step-1")).toBeVisible();
+  await page.locator('[data-extension-step="2"]').click();
+  await expect(page.locator("#extension-hypothesis")).toHaveValue("lower");
+  await expect(page.locator("#predict-y")).toHaveValue("out");
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-result-title")).toHaveText(
+    "細胞 Z 吸水，並未萎縮。",
+  );
+  await page.locator('[data-extension-step="4"]').click();
   await expect(page.locator("#extension-summary-body tr")).toHaveCount(3);
   await page.locator("#infer-a").selectOption("equal");
   await page.locator("#infer-b").selectOption("lower");
@@ -85,6 +118,61 @@ test("The extension tests the lower-potential misconception and supports a corre
   await expect(page.locator("#extension-final-feedback")).toContainText("等滲");
   await page.locator("#extension-return").click();
   await expect(page.locator("#core-lab")).toBeVisible();
+});
+
+test("All four stage buttons support review, keyboard activation and pausing without losing answers", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#extension-button").click();
+  await expect(page.locator(".extension-steps button")).toHaveCount(4);
+  await page.locator('[data-extension-step="4"]').click();
+  await expect(page.locator("#extension-step-4")).toBeVisible();
+  await expect(page.locator("#extension-review-note")).toBeVisible();
+  await expect(page.locator("#extension-summary-body tr")).toHaveCount(0);
+  await page.locator('[data-extension-step="2"]').focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#extension-step-2")).toBeVisible();
+  await page
+    .locator("#extension-reason")
+    .fill("Higher cell water potential should cause water loss.");
+  await page.locator("#extension-hypothesis").selectOption("higher");
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-pause")).toHaveText(
+    "Test the predictions",
+  );
+  const rbcDetails = await page.evaluate(async () => {
+    const { getStructureSnapshot } = await import("/js/renderer.js");
+    return getStructureSnapshot(
+      document.querySelector("#extension-canvas-other"),
+    );
+  });
+  expect(rbcDetails.appearance).toBe("rbc");
+  expect(rbcDetails.nucleus).toBeNull();
+  await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
+    "data-cell-potential",
+    "-700",
+  );
+  await page.locator("#extension-pause").click();
+  await page.waitForTimeout(600);
+  await page.locator('[data-extension-step="1"]').click();
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-pause")).toHaveText("Resume");
+  const pausedPsi = await page
+    .locator("#extension-canvas-other")
+    .getAttribute("data-cell-potential");
+  expect(Number(pausedPsi)).toBeLessThan(-700);
+  expect(Number(pausedPsi)).toBeGreaterThan(-794);
+  await page.waitForTimeout(300);
+  await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
+    "data-cell-potential",
+    pausedPsi,
+  );
+  await page.locator('[data-extension-step="2"]').click();
+  await expect(page.locator("#extension-reason")).toHaveValue(
+    "Higher cell water potential should cause water loss.",
+  );
+  await expect(page.locator("#extension-hypothesis")).toHaveValue("higher");
 });
 test("Extension fits a mobile screen and switching activities pauses the core experiment", async ({
   page,

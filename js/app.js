@@ -11,6 +11,7 @@ import { translate } from "./i18n.js";
 import { drawChamber } from "./renderer.js";
 import { conclusionPoint } from "./conclusion.js";
 import { setupExtension } from "./extension.js";
+import { SIMULATION_SPEED } from "./settings.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -159,7 +160,6 @@ function renderLanguage() {
   $("#language-button").lang = language === "en" ? "zh-Hant" : "en";
   $("#close-guide").setAttribute("aria-label", t("closeGuide"));
   $("#concentration-range").setAttribute("aria-label", t("rangeLabel"));
-  $("#speed").setAttribute("aria-label", t("animationSpeed"));
   $(".header-actions").setAttribute("aria-label", t("chamberTools"));
   $(".control-card").setAttribute("aria-label", t("controlLabel"));
   $(".observation-column").setAttribute("aria-label", t("observationLabel"));
@@ -270,13 +270,16 @@ function renderUI() {
       status: t(statusKey(state)),
     }),
   );
-  $("#result-card").hidden = state.status !== "complete";
-  $("#result-placeholder").hidden = state.status === "complete";
-  if (state.status === "complete") renderConclusion();
+  const showExplanation = ["complete", "paused"].includes(state.status);
+  $("#result-card").hidden = !showExplanation;
+  $("#result-placeholder").hidden = showExplanation;
+  if (showExplanation) renderConclusion();
   showError();
 }
 
 function renderConclusion() {
+  const paused = state.status === "paused";
+  const feature = outcome(state);
   $("#result-card").className = "result-card " + state.tone;
   $("#result-heading").textContent = t(state.tone);
   paintSymbol(
@@ -291,8 +294,19 @@ function renderConclusion() {
         cell: format(state.initialPsi),
       },
     ],
-    [state.burst ? "hypoBurstMovement" : state.tone + "Movement"],
-    [outcome(state) + "Description"],
+    [
+      state.burst
+        ? "hypoBurstMovement"
+        : state.tone +
+          "Movement" +
+          (paused && state.tone !== "iso" ? "Now" : ""),
+    ],
+    [
+      feature +
+        (paused && ["turgid", "swollen", "wrinkled"].includes(feature)
+          ? "NowDescription"
+          : "Description"),
+    ],
   ];
   $("#conclusion").replaceChildren(
     ...points.map(([key, parameters]) => conclusionPoint(key, t, parameters)),
@@ -307,7 +321,8 @@ function renderConclusion() {
           prediction: t(prediction),
           actual: t(expected),
         });
-  const canRecover = cell === "plant" && state.volume < 0.99;
+  const canRecover =
+    state.status === "complete" && cell === "plant" && state.volume < 0.99;
   $("#recovery-button").hidden = !canRecover;
   $("#recovery-note").hidden = !canRecover;
 }
@@ -468,9 +483,9 @@ function frame(now) {
   const dt = previousTime ? Math.min((now - previousTime) / 1000, 0.06) : 0;
   previousTime = now;
   if (state.status !== "paused" && !reduceMotion.matches)
-    visualTime += dt * Number($("#speed").value);
+    visualTime += dt * SIMULATION_SPEED;
   if (state.status === "running") {
-    state = advanceTrial(state, dt * Number($("#speed").value));
+    state = advanceTrial(state, dt * SIMULATION_SPEED);
     if (state.status === "complete") completeTrial();
     else if (now - lastUIUpdate > 180) {
       renderUI();

@@ -14,11 +14,14 @@ const test = base.extend({
 });
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
-  await page.locator("#speed").selectOption("2");
 });
 async function startAndFinish(page) {
   await page.locator("#start-button").click();
   await expect(page.locator("#result-card")).toBeVisible();
+  await expect(page.locator("#after-canvas")).toHaveAttribute(
+    "data-playback-speed",
+    "0.5",
+  );
 }
 
 test("Concentration and water potential update each other and reject invalid inputs", async ({
@@ -110,24 +113,53 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#notebook-empty")).toBeVisible();
 });
 
-test("Red blood cells show haemolysis in pure water and wrinkles in concentrated sucrose", async ({
+test("Animal cells show lysis in pure water and wrinkles in concentrated sucrose", async ({
   page,
 }) => {
   await page.locator('[data-cell="animal"]').click();
   await page.locator('[data-preset="water"]').click();
+  const readWater = () =>
+    page.evaluate(async () => {
+      const { getParticleSnapshot } = await import("/js/renderer.js");
+      return getParticleSnapshot(document.querySelector("#after-canvas")).water;
+    });
+  const originalWater = await readWater();
+  const animalDetails = await page.evaluate(async () => {
+    const { getStructureSnapshot } = await import("/js/renderer.js");
+    return getStructureSnapshot(document.querySelector("#before-canvas"));
+  });
+  expect(animalDetails.nucleus).not.toBeNull();
+  expect(animalDetails.cytoplasmDots.length).toBeGreaterThan(20);
   await startAndFinish(page);
-  await expect(page.locator("#conclusion")).toContainText("haemolysis");
+  await expect(page.locator("#conclusion")).toContainText("burst");
   await expect(page.locator("#conclusion .key-point")).toHaveText([
     "net",
     "into the cell",
     "swelled",
     "burst",
-    "haemoglobin",
-    "haemolysis",
+    "cytoplasm",
   ]);
   await expect(page.locator("#status")).toHaveText("Cell membrane ruptured");
   await expect(page.locator("#recovery-button")).toBeHidden();
+  await expect(page.locator("#after-canvas")).toHaveAttribute(
+    "data-rupture-progress",
+    "1.000",
+  );
+  await expect(page.locator("#after-canvas")).toHaveAttribute(
+    "data-cell-potential",
+    "",
+  );
+  const releasedWater = await readWater();
+  expect(releasedWater.map((p) => p.id)).toEqual(
+    originalWater.map((p) => p.id),
+  );
+  expect(releasedWater.every((p) => !p.inside && !p.transferring)).toBeTruthy();
   await page.locator('[data-preset="strong"]').click();
+  await expect(page.locator("#speed, #extension-speed")).toHaveCount(0);
+  await expect(page.locator("#before-canvas")).toHaveAttribute(
+    "data-cell-potential",
+    "-500",
+  );
   await startAndFinish(page);
   await expect(page.locator("#conclusion")).toContainText(
     "shrank and became wrinkled",
@@ -168,17 +200,30 @@ test("Pause preserves the cell state; resume, reset and language switching work 
   page,
 }) => {
   await page.locator('[data-preset="strong"]').click();
-  await page.locator("#speed").selectOption("0.5");
   await page.locator("#start-button").click();
   await expect(page.locator("#concentration")).toBeDisabled();
   await page.waitForTimeout(400);
   await page.locator("#start-button").click();
   await expect(page.locator("#status")).toHaveText("Paused");
+  await expect(page.locator("#result-card")).toBeVisible();
+  await expect(page.locator("#conclusion")).toContainText(
+    "equilibrium has not yet been reached",
+  );
+  const psi = await page
+    .locator("#after-canvas")
+    .getAttribute("data-cell-potential");
+  expect(Number(psi)).toBeLessThan(-500);
   const volume = await page.locator("#after-volume").textContent();
   await page.waitForTimeout(300);
   await expect(page.locator("#after-volume")).toHaveText(volume);
+  await expect(page.locator("#after-canvas")).toHaveAttribute(
+    "data-cell-potential",
+    psi,
+  );
   await page.locator("#language-button").click();
   await expect(page.locator("#status")).toHaveText("已暫停");
+  await expect(page.locator("#result-card")).toContainText("解釋你的觀察結果");
+  await expect(page.locator("#conclusion")).toContainText("尚未達至平衡");
   await page.locator("#start-button").click();
   await expect(page.locator("#status")).toHaveText("觀察中");
   await page.locator("#reset-button").click();
@@ -225,10 +270,18 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
     });
   await page.locator('[data-preset="strong"]').click();
   const initial = await snapshot();
+  const details = () =>
+    page.evaluate(async () => {
+      const { getStructureSnapshot } = await import("/js/renderer.js");
+      return getStructureSnapshot(document.querySelector("#after-canvas"));
+    });
+  const initialDetails = await details();
   await expect
     .poll(async () => (await snapshot()).crossings.in)
     .toBeGreaterThan(2);
   const ready = await snapshot();
+  expect((await details()).cytoplasmDots).toEqual(initialDetails.cytoplasmDots);
+  expect((await details()).chloroplasts).toHaveLength(2);
   expect(ready.water).toHaveLength(54);
   expect(ready.transfers.in).toBeLessThanOrEqual(2);
   expect(ready.transfers.in).toBe(ready.transfers.out);
@@ -252,6 +305,17 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   await expect(page.locator("#result-card")).toBeVisible();
   await expect.poll(async () => (await snapshot()).inside).toBe(7);
   const complete = await snapshot();
+  const insidePsi = Number(
+    await page.locator("#after-canvas").getAttribute("data-cell-potential"),
+  );
+  const solutionPsi = Number(
+    await page.locator("#after-canvas").getAttribute("data-solution-potential"),
+  );
+  expect(insidePsi).toBeCloseTo(solutionPsi, 6);
+  await expect(page.locator("#before-canvas")).toHaveAttribute(
+    "data-cell-potential",
+    "-500",
+  );
   expect(complete.water.map((p) => p.id)).toEqual(
     initial.water.map((p) => p.id),
   );

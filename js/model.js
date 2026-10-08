@@ -87,7 +87,7 @@ export function outcome(trial) {
     return trial.tone === "hyper"
       ? "wrinkled"
       : trial.burst
-        ? "haemolysis"
+        ? "lysed"
         : "swollen";
   return trial.tone === "hypo"
     ? "turgid"

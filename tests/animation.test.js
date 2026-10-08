@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cellGeometry, boundaryAt, containsPoint } from "../js/geometry.js";
+import { cytoplasmDots, insideOrganelle } from "../js/cell-details.js";
 import {
   createParticles,
   advanceParticles,
@@ -20,6 +21,102 @@ function stepParticles(particles, trial, seconds, advanceCell = false) {
   }
   return trial;
 }
+
+test("Two chloroplasts and all pink cytoplasm dots stay inside the membrane and outside the vacuole at every cell size", () => {
+  for (const width of [160, 360, 510]) {
+    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.1455]) {
+      const geometry = cellGeometry(width, 320, { cell: "plant", volume });
+      assert.equal(geometry.chloroplasts.length, 2);
+      for (const c of [...geometry.chloroplasts, geometry.vacuole]) {
+        for (let i = 0; i < 120; i++) {
+          const angle = (i * Math.PI) / 60,
+            rotation = c.rotation ?? 0;
+          const dx = Math.cos(angle) * c.rx,
+            dy = Math.sin(angle) * c.ry;
+          const x = c.x + dx * Math.cos(rotation) - dy * Math.sin(rotation);
+          const y = c.y + dx * Math.sin(rotation) + dy * Math.cos(rotation);
+          assert.ok(containsPoint(geometry.outline, x, y));
+          if (c !== geometry.vacuole)
+            assert.ok(!insideOrganelle(geometry.vacuole, x, y));
+        }
+      }
+      const dots = cytoplasmDots(geometry);
+      assert.ok(dots.length > 10);
+      for (const dot of dots) {
+        assert.ok(containsPoint(geometry.outline, dot.x, dot.y));
+        assert.ok(!insideOrganelle(geometry.vacuole, dot.x, dot.y));
+        assert.ok(!insideOrganelle(geometry.nucleus, dot.x, dot.y));
+      }
+    }
+  }
+  assert.ok(cellGeometry(360, 320, { cell: "animal", volume: 1 }).nucleus);
+  assert.equal(
+    cellGeometry(360, 320, { cell: "animal", volume: 1, appearance: "rbc" })
+      .nucleus,
+    null,
+  );
+});
+
+test("Membrane contact flashes for half a real second, independently of playback speed, and freezes on pause", () => {
+  const trial = createTrial("animal", 5);
+  const geometry = cellGeometry(360, 320, trial);
+  const particles = createParticles(geometry, trial);
+  particles.pairTimer = Infinity;
+  const water = particles.molecules.find((p) => p.type === "water" && p.inside);
+  const edge = boundaryAt(geometry, 0);
+  Object.assign(water, { x: edge.x - 1, y: edge.y, vx: -17, vy: 0 });
+  advanceParticles(particles, geometry, trial, 0.005, 0.01);
+  const read = () =>
+    particleSnapshot(particles).water.find((p) => p.id === water.id);
+  assert.equal(read().flashing, true);
+  assert.ok(Math.abs(read().flashRemaining - 0.5) < 1e-10);
+  const paused = particleSnapshot(particles);
+  advanceParticles(particles, geometry, trial, 0, 1);
+  assert.deepEqual(particleSnapshot(particles), paused);
+  advanceParticles(particles, geometry, trial, 0.245, 0.49);
+  assert.equal(read().flashing, true);
+  advanceParticles(particles, geometry, trial, 0.01, 0.02);
+  assert.equal(read().flashing, false);
+});
+
+test("After lysis the conserved water mixes freely with similar density inside the former cell region and outside", () => {
+  let trial = { ...createTrial("animal", 0), status: "running" };
+  const particles = createParticles(cellGeometry(360, 320, trial), trial);
+  const ids = particleSnapshot(particles).water.map((p) => p.id);
+  trial = stepParticles(particles, trial, 5, true);
+  assert.equal(trial.burst, true);
+  const geometry = cellGeometry(360, 320, trial);
+  const beforeMix = particleSnapshot(particles);
+  advanceParticles(particles, geometry, trial, 0);
+  assert.deepEqual(particleSnapshot(particles), beforeMix);
+  stepParticles(particles, trial, 3);
+  const mixed = particleSnapshot(particles);
+  assert.deepEqual(
+    mixed.water.map((p) => p.id),
+    ids,
+  );
+  assert.ok(
+    mixed.water.every((p) => !p.inside && !p.transferring && !p.flashing),
+  );
+  const inRegion = mixed.water.filter((p) =>
+    containsPoint(geometry.outline, p.x, p.y),
+  ).length;
+  const area = Math.PI * geometry.rx * geometry.ry;
+  const insideDensity = inRegion / area;
+  const outsideDensity = (mixed.water.length - inRegion) / (360 * 320 - area);
+  assert.ok(
+    insideDensity / outsideDensity > 0.65 &&
+      insideDensity / outsideDensity < 1.4,
+  );
+  const oldPosition = { x: geometry.cx, y: geometry.cy };
+  const water = particles.molecules[0];
+  Object.assign(water, { ...oldPosition, vx: 17, vy: 0 });
+  advanceParticles(particles, geometry, trial, 0.1);
+  assert.ok(
+    water.x > oldPosition.x,
+    "The former cell interior remains accessible to water",
+  );
+});
 
 test("Water density is reduced by one quarter and grey internal dots are omitted", () => {
   for (const concentration of [0, 5, 20]) {
@@ -126,7 +223,15 @@ test("The starting plant membrane touches the wall, with fixed corners throughou
     const areaRatio =
       (shrunken.vacuole.rx * shrunken.vacuole.ry) /
       (initial.vacuole.rx * initial.vacuole.ry);
-    assert.ok(Math.abs(areaRatio - volume) < 1e-10);
+    const plasmolysis = Math.max(0, Math.min(1, (1 - volume - 0.1) / 0.5));
+    assert.ok(
+      Math.abs(areaRatio - volume * (1 - 0.4 * plasmolysis) ** 2) < 1e-10,
+    );
+    assert.ok(shrunken.vacuole.x > initial.vacuole.x);
+    assert.ok(
+      Math.abs(shrunken.nucleus.x - shrunken.cx) <
+        Math.abs(initial.nucleus.x - initial.cx),
+    );
   }
   assert.deepEqual(initial.commands, initial.wallInnerCommands);
   assert.equal(
@@ -139,6 +244,44 @@ test("The starting plant membrane touches the wall, with fixed corners throughou
     initial.wall.y + initial.wall.height - 3.5,
   );
   assert.equal(boundaryAt(initial, -Math.PI / 2).y, initial.wall.y + 3.5);
+});
+
+test("Turgid walls bow outward with an attached membrane, and the nucleus remains beside the vacuole", () => {
+  for (const width of [160, 360, 510]) {
+    const initial = cellGeometry(width, 320, { cell: "plant", volume: 1 });
+    const initialWall = { ...initial, outline: initial.wallOutline };
+    for (const volume of [0.12, 0.345, 0.6, 1, 1.02, 1.08, 1.1455]) {
+      const geometry = cellGeometry(width, 320, { cell: "plant", volume });
+      if (volume > 1) {
+        const wall = { ...geometry, outline: geometry.wallOutline };
+        const outwardBow = boundaryAt(wall, 0).x - boundaryAt(initialWall, 0).x;
+        assert.ok(outwardBow > 0 && outwardBow < initial.wall.width * 0.04);
+        assert.ok(
+          boundaryAt(wall, Math.PI / 2).y >
+            boundaryAt(initialWall, Math.PI / 2).y,
+        );
+        assert.deepEqual(geometry.commands, geometry.wallInnerCommands);
+        assert.ok(geometry.nucleus.x < initial.nucleus.x);
+      }
+      const { nucleus, vacuole } = geometry;
+      assert.ok(nucleus.rx > 0);
+      for (let i = 0; i < 120; i++) {
+        const angle = (i * Math.PI) / 60;
+        const x = nucleus.x + Math.cos(angle) * nucleus.rx;
+        const y = nucleus.y + Math.sin(angle) * nucleus.ry;
+        assert.ok(
+          containsPoint(geometry.outline, x, y),
+          "The entire nucleus stays inside the membrane",
+        );
+        assert.ok(
+          ((x - vacuole.x) / vacuole.rx) ** 2 +
+            ((y - vacuole.y) / vacuole.ry) ** 2 >
+            1,
+          "The nucleus never overlaps the vacuole",
+        );
+      }
+    }
+  }
 });
 
 test("Existing water molecules cross both ways before Start without a net change", () => {

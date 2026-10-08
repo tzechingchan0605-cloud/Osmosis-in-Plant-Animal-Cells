@@ -13,7 +13,7 @@ export const translations = {
     plant: "Plant cell",
     plantDetail: "With a cell wall",
     animal: "Animal cell",
-    animalDetail: "Red blood cell",
+    animalDetail: "With a nucleus",
     startingPsi: "STARTING CELL WATER POTENTIAL",
     presetValue: "MODEL VALUE",
     continuingValue: "CONTINUING CELL",
@@ -52,7 +52,6 @@ export const translations = {
     plantVolume: "Relative cell-content volume",
     netMovement: "NET WATER MOVEMENT",
     pressStart: "Press Start to observe",
-    animationSpeed: "Animation speed",
     schematic:
       "Particles and timing are schematic. Both views use the same scale.",
     lookCloser: "Look closely. What do you notice?",
@@ -71,6 +70,7 @@ export const translations = {
     cell: "Cell",
     solution: "Solution",
     solutionPsiShort: "Solution Ψ",
+    cellPsiShort: "Cell Ψ",
     netMovementShort: "Net movement",
     observation: "Observation",
     footer: "Made for curious minds · F.4 Biology",
@@ -107,6 +107,16 @@ export const translations = {
       "The solution initially had a lower water potential than the cell ({solution} kPa < {cell} kPa).",
     hypoMovement:
       "Water molecules made a net movement into the cell by osmosis: the outward rate was lower than the inward rate until the water potentials inside and outside the cell reached equilibrium.",
+    hypoMovementNow:
+      "Water molecules are making a net movement into the cell by osmosis. The inward rate is higher than the outward rate; equilibrium has not yet been reached.",
+    hyperMovementNow:
+      "Water molecules are making a net movement out of the cell by osmosis. The outward rate is higher than the inward rate; equilibrium has not yet been reached.",
+    turgidNowDescription:
+      "The vacuole is enlarging and the cell is becoming turgid. The cell wall resists further expansion.",
+    swollenNowDescription:
+      "The animal cell is swelling. Its membrane has not burst at this stage.",
+    wrinkledNowDescription:
+      "The animal cell is shrinking and becoming wrinkled.",
     hypoBurstMovement:
       "Water molecules made a net movement into the cell by osmosis, with a higher initial inward rate. The cell membrane then burst, releasing the cell contents.",
     hyperMovement:
@@ -120,18 +130,18 @@ export const translations = {
       "The vacuole shrank and the cell membrane pulled away from the wall along the sides. The cell underwent plasmolysis and became flaccid.",
     flaccidDescription:
       "The cell lost some water and became flaccid, without obvious plasmolysis in this trial.",
-    wrinkledDescription: "The red blood cell shrank and became wrinkled.",
+    wrinkledDescription: "The animal cell shrank and became wrinkled.",
     swollenDescription:
-      "The red blood cell swelled. In this mildly hypotonic solution, equilibrium was reached before the membrane burst.",
-    haemolysisDescription:
-      "The red blood cell swelled and burst, releasing haemoglobin. This is called haemolysis.",
+      "The animal cell swelled. In this mildly hypotonic solution, equilibrium was reached before the membrane burst.",
+    lysedDescription:
+      "The animal cell swelled and burst, releasing its cytoplasm.",
     unchanged: "Shape & volume unchanged",
     turgid: "Turgid",
     plasmolysed: "Plasmolysed & flaccid",
     flaccid: "Flaccid",
     wrinkled: "Shrunken & wrinkled",
     swollen: "Swollen",
-    haemolysis: "Haemolysis",
+    lysed: "Burst cell",
     predictionCorrect:
       "Your prediction matched the initial net movement. What cell feature supports your explanation?",
     predictionIncorrect:
@@ -141,8 +151,9 @@ export const translations = {
     cellWall: "Cell wall",
     cellMembrane: "Cell membrane",
     cytoplasm: "Cytoplasm",
+    nucleus: "Nucleus",
     vacuole: "Vacuole",
-    haemoglobin: "Haemoglobin released",
+    cytoplasmReleased: "Cytoplasm released",
     closeGuide: "Close guide",
     languageSwitch: "Switch to Traditional Chinese",
     beforeAccessible: "{cell} before osmosis. Relative volume {volume}.",
@@ -160,6 +171,8 @@ export const translations = {
     extensionHeading: "Same solution. Different cells?",
     extensionSubtitle:
       "Look beyond the usual rule and test a hypothesis about individual red blood cells.",
+    reviewTestsFirst:
+      "Complete the tests in stage 03 to add their observations here. You can review any stage without losing your answers.",
     restartActivity: "Restart activity",
     observeStep: "Observe",
     hypothesiseStep: "Hypothesise",
@@ -170,7 +183,7 @@ export const translations = {
     observationQuestion: "THE OBSERVATION",
     observationHeading: "Most look regular. A few look wrinkled.",
     observationScenario:
-      "Imagine these red blood cells are in the same 0.9% saline solution. Its given water potential is −0.794 MPa.",
+      "Imagine these red blood cells are in the same 0.9% saline solution. Its given water potential is −794 kPa.",
     observationPrompt:
       "Could the same solution affect individual cells differently?",
     observationAssumption:
@@ -205,34 +218,34 @@ export const translations = {
     sharedBathLabel: "ONE SHARED SALINE SOLUTION",
     saltParticles: "Dissolved salt (schematic)",
     extensionScaleNote:
-      "The changes are small. Shape changes are enlarged 6× for visibility; the displayed volume changes are the model’s actual values.",
-    testHigher: "Now test a cell with a higher initial water potential",
+      "Cell Y uses the actual relative size change. The smaller change in cell Z is enlarged 6× for visibility; volume percentages always show the actual model values.",
+    testLower: "Now test a cell with a lower initial water potential",
     explainObservation: "Explain the observation",
     evidenceConclusion: "FROM EVIDENCE TO AN EXPLANATION",
     whatLearned: "What do the tests tell us?",
-    initialWaterPotential: "Initial Ψ (MPa)",
+    initialWaterPotential: "Initial Ψ (kPa)",
     solutionRelative: "Solution relative to this cell",
     inferA: "A cell confirmed to remain unchanged most likely began with…",
     inferB: "A cell that shrank by osmosis must have begun with…",
     checkExplanation: "Check my explanation",
     inferenceLimit:
-      "Under our assumptions, the unchanged cell began near −0.794 MPa; a cell that shrank began above −0.794 MPa. The image cannot tell us its exact initial value, and real images can also be affected by preparation artefacts.",
+      "Under our assumptions, the unchanged cell began near −794 kPa; a cell that shrank began above −794 kPa. The image cannot tell us its exact initial value, and real images can also be affected by preparation artefacts.",
     backToLab: "← Back to the osmosis lab",
-    xyTestTitle: "Cell X and cell Y: equal or lower initial Ψ",
-    xzTestTitle: "Cell X and cell Z: equal or higher initial Ψ",
-    lowerResultTitle: "Cell Y gained water, rather than shrinking.",
-    higherResultTitle: "Cell Z lost water and shrank slightly.",
+    xyTestTitle: "Cell X and cell Y: equal or higher initial Ψ",
+    xzTestTitle: "Cell X and cell Z: equal or lower initial Ψ",
+    yResultTitle: "Cell Y lost water and shrank.",
+    zResultTitle: "Cell Z gained water, rather than shrinking.",
     xResult:
-      "X: −0.794 MPa equals the saline solution. Water moved both ways equally; shape and volume stayed unchanged.",
+      "X: −794 kPa equals the saline solution. Water moved both ways equally; shape and volume stayed unchanged.",
     yResult:
-      "Y: −0.810 MPa is LOWER than −0.794 MPa. Water moved into Y overall, and its volume increased by {change}%. It does not explain a shrunken cell.",
+      "Y: −700 kPa is HIGHER than −794 kPa. Water moved out of Y overall, and its volume decreased by {change}%. This is the direction expected for a cell that shrinks.",
     zResult:
-      "Z: −0.780 MPa is HIGHER than −0.794 MPa. Water moved out of Z overall, and its volume decreased by {change}%. This is the direction expected for a cell that shrinks.",
+      "Z: −810 kPa is LOWER than −794 kPa. Water moved into Z overall, and its volume increased by {change}%. A lower initial water potential does not explain a shrunken cell.",
     finalEquilibriumNote:
-      "At the end, both cells reach −0.794 MPa. Water still crosses in both directions, with no net movement. Each cell exchanges water with the surrounding saline.",
+      "At the end, both cells reach −794 kPa. Water still crosses in both directions, with no net movement. Each cell exchanges water with the surrounding saline.",
     predictionsMatched: "Your X/Y movement predictions matched the test.",
     predictionsReview:
-      "Compare with your predictions: X had no net movement; Y gained water.",
+      "Compare with your predictions: X had no net movement; Y lost water.",
     noPredictions:
       "Compare these observations with the water potential gradient.",
     hypothesisReview:
@@ -242,8 +255,8 @@ export const translations = {
     resumeShort: "Resume",
     replayTest: "Replay",
     volumeChange: "Volume: {change}%",
-    slightSwelling: "Slight swelling (+2.02%)",
-    slightShrinking: "Slight shrinking (−1.76%)",
+    slightSwelling: "Slight swelling (+{change}%)",
+    shrinkingObservation: "Shrinking (−{change}%)",
     correctExplanation:
       "Your explanation follows the water potential gradient.",
     revisitExplanation:
@@ -251,18 +264,17 @@ export const translations = {
     chooseBothInferences:
       "Choose an answer for both cells, then check your explanation.",
     inferAAnswer:
-      "Unchanged A: initial Ψ was approximately equal to the saline solution, −0.794 MPa, under our assumptions.",
+      "Unchanged A: initial Ψ was approximately equal to the saline solution, −794 kPa, under our assumptions.",
     inferBAnswer:
-      "Shrunken B: initial Ψ was higher (less negative) than −0.794 MPa, so water moved out. Its exact starting value is unknown.",
+      "Shrunken B: initial Ψ was higher (less negative) than −794 kPa, so water moved out. Its exact starting value is unknown.",
     relativeTonicity:
-      "“Isotonic” is a relationship between a solution and a particular cell. The same solution can be isotonic to X, hypotonic to Y and hypertonic to Z.",
+      "“Isotonic” is a relationship between a solution and a particular cell. The same solution can be isotonic to X, hypertonic to Y and hypotonic to Z.",
     micrographAlt:
       "The supplied blood photograph. Straight leader lines identify the selected normal red blood cell A at lower left and the selected shrunken red blood cell B at upper right. The image also contains white blood cells.",
     extensionCanvasAlt:
-      "{cell}, initial water potential {psi} MPa. Actual relative volume {volume}. Initial net movement: {direction}.",
+      "{cell}, initial water potential {psi} kPa. Actual relative volume {volume}. Initial net movement: {direction}.",
     activitiesLabel: "Learning activities",
     extensionProgress: "Activity progress",
-    extensionSpeed: "Extension animation speed",
     regularLabelLine1: "A · RBC with",
     regularLabelLine2: "regular shape",
     shrunkenLabelLine1: "B · Shrunken",
@@ -283,7 +295,7 @@ export const translations = {
     plant: "植物細胞",
     plantDetail: "具有細胞壁",
     animal: "動物細胞",
-    animalDetail: "紅血細胞",
+    animalDetail: "具細胞核",
     startingPsi: "細胞的起始水勢",
     presetValue: "模型數值",
     continuingValue: "沿用目前細胞",
@@ -322,7 +334,6 @@ export const translations = {
     plantVolume: "細胞內容物相對體積",
     netMovement: "水分子的淨移動",
     pressStart: "按「開始」觀察",
-    animationSpeed: "動畫速度",
     schematic: "粒子和時間以示意方式顯示。兩個圖像使用相同比例。",
     lookCloser: "仔細看看，你觀察到甚麼？",
     placeholder: "進行實驗，了解細胞變化背後的原因。",
@@ -337,6 +348,7 @@ export const translations = {
     cell: "細胞",
     solution: "溶液",
     solutionPsiShort: "溶液水勢",
+    cellPsiShort: "細胞水勢",
     netMovementShort: "淨移動",
     observation: "觀察結果",
     footer: "探索細胞世界 · 中四生物",
@@ -370,6 +382,14 @@ export const translations = {
     hyperRelation: "溶液的起始水勢較細胞低（{solution} kPa < {cell} kPa）。",
     hypoMovement:
       "水分子藉滲透淨移動進入細胞，即水分子離開細胞的速率較進入細胞的速率低，直至細胞內、外的水分達至平衡。",
+    hypoMovementNow:
+      "水分子正藉滲透淨移動進入細胞，水分子進入細胞的速率較離開細胞的速率高；細胞內、外的水勢尚未達至平衡。",
+    hyperMovementNow:
+      "水分子正藉滲透淨移動離開細胞，水分子離開細胞的速率較進入細胞的速率高；細胞內、外的水勢尚未達至平衡。",
+    turgidNowDescription:
+      "液泡正脹大，細胞逐漸變得硬脹，細胞壁抵抗進一步膨脹。",
+    swollenNowDescription: "動物細胞正膨脹，此刻細胞膜尚未爆裂。",
+    wrinkledNowDescription: "動物細胞正萎縮，逐漸變得皺褶。",
     hypoBurstMovement:
       "水分子藉滲透淨移動進入細胞，起初水分子進入細胞的速率較離開細胞的速率高；細胞膜其後爆裂，內容物釋出。",
     hyperMovement:
@@ -382,17 +402,17 @@ export const translations = {
       "液泡萎縮，細胞膜沿四邊與細胞壁分離，細胞出現質壁分離，呈軟縮狀態。",
     flaccidDescription:
       "細胞失去少量水，呈軟縮狀態，但本次實驗未出現明顯質壁分離。",
-    wrinkledDescription: "紅血細胞萎縮，變得皺褶。",
+    wrinkledDescription: "動物細胞萎縮，變得皺褶。",
     swollenDescription:
-      "紅血細胞膨脹。在此輕微低滲溶液中，細胞在爆裂前已達到平衡。",
-    haemolysisDescription: "紅血細胞膨脹並爆裂，釋出血紅蛋白，這現象稱為溶血。",
+      "動物細胞膨脹。在此輕微低滲溶液中，細胞在爆裂前已達到平衡。",
+    lysedDescription: "動物細胞膨脹並爆裂，釋出細胞質。",
     unchanged: "形狀和體積不變",
     turgid: "硬脹",
     plasmolysed: "質壁分離及軟縮",
     flaccid: "軟縮",
     wrinkled: "萎縮及皺褶",
     swollen: "膨脹",
-    haemolysis: "溶血",
+    lysed: "細胞爆裂",
     predictionCorrect:
       "你的預測與起初的淨移動方向相符。哪些細胞特徵支持你的解釋？",
     predictionIncorrect:
@@ -402,8 +422,9 @@ export const translations = {
     cellWall: "細胞壁",
     cellMembrane: "細胞膜",
     cytoplasm: "細胞質",
+    nucleus: "細胞核",
     vacuole: "液泡",
-    haemoglobin: "釋出血紅蛋白",
+    cytoplasmReleased: "釋出細胞質",
     closeGuide: "關閉說明",
     languageSwitch: "Switch to English",
     beforeAccessible: "滲透前的{cell}，相對體積為 {volume}。",
@@ -420,6 +441,8 @@ export const translations = {
     extensionEyebrow: "延伸學習 · 像科學家一樣思考",
     extensionHeading: "相同溶液，不同細胞？",
     extensionSubtitle: "進一步探索個別紅血細胞的差異，並測試一個假說。",
+    reviewTestsFirst:
+      "完成第 03 階段的測試後，觀察結果會加入此處。你可隨時重溫各階段，答案會保留。",
     restartActivity: "重新開始活動",
     observeStep: "觀察",
     hypothesiseStep: "提出假說",
@@ -430,7 +453,7 @@ export const translations = {
     observationQuestion: "觀察現象",
     observationHeading: "大部分形狀正常，少數呈皺褶。",
     observationScenario:
-      "想像這些紅血細胞浸在同一 0.9% 氯化鈉溶液中。本活動給定溶液水勢為 −0.794 MPa。",
+      "想像這些紅血細胞浸在同一 0.9% 氯化鈉溶液中。本活動給定溶液水勢為 −794 kPa。",
     observationPrompt: "相同溶液會否對個別細胞產生不同影響？",
     observationAssumption:
       "本活動假設各細胞起初形狀相近且正常，細胞 A 保持不變，而細胞 B 因滲透而萎縮。",
@@ -460,33 +483,33 @@ export const translations = {
     sharedBathLabel: "共用同一氯化鈉溶液",
     saltParticles: "已溶解的鹽（示意）",
     extensionScaleNote:
-      "體積變化很小。形狀變化放大 6 倍以便觀察；顯示的體積變化百分比則是模型的實際數值。",
-    testHigher: "再測試一個起始水勢較高的細胞",
+      "細胞 Y 按實際相對體積變化繪製。細胞 Z 的變化較小，形狀變化放大 6 倍以便觀察；體積變化百分比均顯示模型的實際數值。",
+    testLower: "再測試一個起始水勢較低的細胞",
     explainObservation: "解釋觀察結果",
     evidenceConclusion: "從證據得出解釋",
     whatLearned: "測試結果告訴我們甚麼？",
-    initialWaterPotential: "起始水勢（MPa）",
+    initialWaterPotential: "起始水勢（kPa）",
     solutionRelative: "溶液相對此細胞的滲性",
     inferA: "已確認形狀和體積不變的細胞，起始水勢最可能……",
     inferB: "因滲透而萎縮的細胞，起始水勢必須……",
     checkExplanation: "檢查我的解釋",
     inferenceLimit:
-      "在本活動的假設下，不變的細胞起始水勢接近 −0.794 MPa；萎縮的細胞則高於 −0.794 MPa。圖像不能告訴我們其確切起始水勢，真實顯微照片也可能受製片過程影響。",
+      "在本活動的假設下，不變的細胞起始水勢接近 −794 kPa；萎縮的細胞則高於 −794 kPa。圖像不能告訴我們其確切起始水勢，真實顯微照片也可能受製片過程影響。",
     backToLab: "← 返回滲透實驗",
-    xyTestTitle: "細胞 X 與 Y：相同或較低的起始水勢",
-    xzTestTitle: "細胞 X 與 Z：相同或較高的起始水勢",
-    lowerResultTitle: "細胞 Y 吸水，並未萎縮。",
-    higherResultTitle: "細胞 Z 失水並輕微萎縮。",
+    xyTestTitle: "細胞 X 與 Y：相同或較高的起始水勢",
+    xzTestTitle: "細胞 X 與 Z：相同或較低的起始水勢",
+    yResultTitle: "細胞 Y 失水並萎縮。",
+    zResultTitle: "細胞 Z 吸水，並未萎縮。",
     xResult:
-      "X：−0.794 MPa 與溶液水勢相同。水向兩個方向移動的速率相同，形狀和體積維持不變。",
+      "X：−794 kPa 與溶液水勢相同。水向兩個方向移動的速率相同，形狀和體積維持不變。",
     yResult:
-      "Y：−0.810 MPa 比 −0.794 MPa 低。水分子淨移動進入 Y，體積增加 {change}%。這不能解釋萎縮細胞的現象。",
+      "Y：−700 kPa 比 −794 kPa 高。水分子淨移動離開 Y，體積減少 {change}%。這符合細胞萎縮時預期的淨移動方向。",
     zResult:
-      "Z：−0.780 MPa 比 −0.794 MPa 高。水分子淨移動離開 Z，體積減少 {change}%。這符合細胞萎縮時預期的淨移動方向。",
+      "Z：−810 kPa 比 −794 kPa 低。水分子淨移動進入 Z，體積增加 {change}%。起始水勢較低不能解釋萎縮細胞的現象。",
     finalEquilibriumNote:
-      "最後兩個細胞的水勢均達到 −0.794 MPa。水仍向兩個方向穿膜移動，但沒有淨移動。各細胞均與周圍氯化鈉溶液交換水份。",
+      "最後兩個細胞的水勢均達到 −794 kPa。水仍向兩個方向穿膜移動，但沒有淨移動。各細胞均與周圍氯化鈉溶液交換水份。",
     predictionsMatched: "你對 X 和 Y 的淨移動預測與測試結果相符。",
-    predictionsReview: "比較你的預測：X 沒有水的淨移動，Y 則吸水。",
+    predictionsReview: "比較你的預測：X 沒有水的淨移動，Y 則失水。",
     noPredictions: "利用水勢梯度解釋這些觀察結果。",
     hypothesisReview:
       "如果你曾預測萎縮細胞的起始水勢較低，請修正預測：水勢較低的細胞會吸水。",
@@ -495,25 +518,24 @@ export const translations = {
     resumeShort: "繼續",
     replayTest: "重播",
     volumeChange: "體積：{change}%",
-    slightSwelling: "輕微膨脹（+2.02%）",
-    slightShrinking: "輕微萎縮（−1.76%）",
+    slightSwelling: "輕微膨脹（+{change}%）",
+    shrinkingObservation: "萎縮（−{change}%）",
     correctExplanation: "你的解釋符合水勢梯度。",
     revisitExplanation:
       "再想一想滲透方向：水分子從水勢較高的區域向水勢較低的區域淨移動。",
     chooseBothInferences: "請先為兩個細胞選擇答案，再檢查解釋。",
     inferAAnswer:
-      "不變的 A：在本活動的假設下，其起始水勢約等於氯化鈉溶液水勢，即 −0.794 MPa。",
+      "不變的 A：在本活動的假設下，其起始水勢約等於氯化鈉溶液水勢，即 −794 kPa。",
     inferBAnswer:
-      "萎縮的 B：其起始水勢比 −0.794 MPa 高（負值較小），因此水會離開細胞。其確切起始水勢仍未知。",
+      "萎縮的 B：其起始水勢比 −794 kPa 高（負值較小），因此水會離開細胞。其確切起始水勢仍未知。",
     relativeTonicity:
-      "「等滲」描述溶液與特定細胞之間的關係。同一溶液相對 X 是等滲的，相對 Y 是低滲的，相對 Z 則是高滲的。",
+      "「等滲」描述溶液與特定細胞之間的關係。同一溶液相對 X 是等滲的，相對 Y 是高滲的，相對 Z 則是低滲的。",
     micrographAlt:
       "教師提供的血液顯微照片。直線標註左下方所選的形狀正常紅血細胞 A，以及右上方所選的萎縮紅血細胞 B。圖中亦有白血細胞。",
     extensionCanvasAlt:
-      "{cell}，起始水勢 {psi} MPa，實際相對體積 {volume}，起初的淨移動方向：{direction}。",
+      "{cell}，起始水勢 {psi} kPa，實際相對體積 {volume}，起初的淨移動方向：{direction}。",
     activitiesLabel: "學習活動",
     extensionProgress: "活動進度",
-    extensionSpeed: "延伸學習動畫速度",
     regularLabelLine1: "A · 形狀正常的",
     regularLabelLine2: "紅血細胞",
     shrunkenLabelLine1: "B · 萎縮的",

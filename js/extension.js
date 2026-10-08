@@ -3,7 +3,9 @@ import {
   SALINE_PSI,
   createExtensionCell,
   advanceExtensionCell,
+  extensionPotential,
 } from "./extension-model.js";
+import { SIMULATION_SPEED } from "./settings.js";
 import { drawChamber } from "./renderer.js";
 import { conclusionPoint } from "./conclusion.js";
 
@@ -14,7 +16,8 @@ export function setupExtension({ t, returnToLab }) {
   let step = 1,
     otherName = "Y",
     paused = false,
-    finished = false;
+    finished = false,
+    testStarted = false;
   let x = createExtensionCell("X"),
     other = createExtensionCell("Y");
   let results = {},
@@ -22,6 +25,7 @@ export function setupExtension({ t, returnToLab }) {
     feedbackShown = false,
     animationTime = 0,
     particleEpoch = 0;
+  let visitedSteps = new Set([1]);
   const signedChange = (current) => {
     const change = (current.volume - 1) * 100;
     return Math.abs(change) < 0.005
@@ -32,7 +36,9 @@ export function setupExtension({ t, returnToLab }) {
   };
 
   function goTo(number) {
+    if (step === 3 && number !== 3 && testStarted && !finished) paused = true;
     step = number;
+    visitedSteps.add(number);
     render();
   }
   function startTest(name) {
@@ -42,6 +48,7 @@ export function setupExtension({ t, returnToLab }) {
     other = { ...createExtensionCell(name), status: "running" };
     paused = false;
     finished = false;
+    testStarted = true;
     animationTime = 0;
     goTo(3);
   }
@@ -49,25 +56,33 @@ export function setupExtension({ t, returnToLab }) {
     for (let i = 1; i <= 4; i++) {
       $(`#extension-step-${i}`).hidden = step !== i;
       const item = root.querySelector(`[data-step="${i}"]`);
-      item.classList.toggle("completed", i < step);
+      item.classList.toggle("completed", visitedSteps.has(i) && i !== step);
       if (i === step) item.setAttribute("aria-current", "step");
       else item.removeAttribute("aria-current");
+      const button = item.querySelector("button");
+      if (i === step) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
     }
     $("#micrograph-image").setAttribute("aria-label", t("micrographAlt"));
     $(".extension-steps").setAttribute("aria-label", t("extensionProgress"));
-    $("#extension-speed").setAttribute("aria-label", t("extensionSpeed"));
     $("#extension-reason").placeholder = t("reasonPlaceholder");
     $("#extension-test-heading").textContent = t(
       otherName === "Y" ? "xyTestTitle" : "xzTestTitle",
     );
     $("#extension-cell-other").textContent = t("cell" + otherName);
     $("#extension-initial-other").textContent =
-      `Ψ₀ = ${other.initialPsi.toFixed(3).replace("-", "−")} MPa`;
+      `Ψ₀ = ${other.initialPsi.toFixed(0).replace("-", "−")} kPa`;
     $("#extension-pause").textContent = t(
-      finished ? "replayTest" : paused ? "resumeShort" : "pauseShort",
+      !testStarted
+        ? "testHypothesis"
+        : finished
+          ? "replayTest"
+          : paused
+            ? "resumeShort"
+            : "pauseShort",
     );
     $("#extension-test-result").hidden = !finished;
-    $("#extension-higher-test").hidden = otherName === "Z";
+    $("#extension-lower-test").hidden = otherName === "Z";
     $("#extension-to-explain").hidden = otherName !== "Z";
     for (const [name, current] of [
       ["x", x],
@@ -83,7 +98,7 @@ export function setupExtension({ t, returnToLab }) {
         "aria-label",
         t("extensionCanvasAlt", {
           cell: t("cell" + current.name),
-          psi: current.initialPsi.toFixed(3).replace("-", "−"),
+          psi: current.initialPsi.toFixed(0).replace("-", "−"),
           volume: current.volume.toFixed(4),
           direction: t(current.direction),
         }),
@@ -91,7 +106,7 @@ export function setupExtension({ t, returnToLab }) {
     }
     if (finished) {
       $("#extension-result-title").textContent = t(
-        otherName === "Y" ? "lowerResultTitle" : "higherResultTitle",
+        otherName === "Y" ? "yResultTitle" : "zResultTitle",
       );
       const points = [
         ["xResult"],
@@ -115,7 +130,7 @@ export function setupExtension({ t, returnToLab }) {
           ? t(
               !px && !py
                 ? "noPredictions"
-                : px === "none" && py === "in"
+                : px === "none" && py === "out"
                   ? "predictionsMatched"
                   : "predictionsReview",
             )
@@ -127,6 +142,7 @@ export function setupExtension({ t, returnToLab }) {
     if (feedbackShown) checkExplanation();
   }
   function renderSummary() {
+    $("#extension-review-note").hidden = !!(results.Y && results.Z);
     $("#extension-summary-body").replaceChildren(
       ...["X", "Y", "Z"]
         .filter((name) => results[name])
@@ -135,7 +151,7 @@ export function setupExtension({ t, returnToLab }) {
             row = document.createElement("tr");
           const values = [
             t("cell" + name),
-            current.initialPsi.toFixed(3).replace("-", "−"),
+            current.initialPsi.toFixed(0).replace("-", "−"),
             t(
               current.direction === "none"
                 ? "iso"
@@ -149,7 +165,8 @@ export function setupExtension({ t, returnToLab }) {
                 ? "unchanged"
                 : current.direction === "in"
                   ? "slightSwelling"
-                  : "slightShrinking",
+                  : "shrinkingObservation",
+              { change: Math.abs((current.volume - 1) * 100).toFixed(2) },
             ),
           ];
           row.replaceChildren(
@@ -187,9 +204,13 @@ export function setupExtension({ t, returnToLab }) {
   }
   function reset() {
     step = 1;
+    visitedSteps = new Set([1]);
     otherName = "Y";
     paused = false;
     finished = false;
+    testStarted = false;
+    particleEpoch++;
+    animationTime = 0;
     results = {};
     feedbackShown = false;
     x = createExtensionCell("X");
@@ -208,17 +229,22 @@ export function setupExtension({ t, returnToLab }) {
   }
   $("#extension-next-1").addEventListener("click", () => goTo(2));
   $("#extension-start-test").addEventListener("click", () => startTest("Y"));
-  $("#extension-higher-test").addEventListener("click", () => startTest("Z"));
+  $("#extension-lower-test").addEventListener("click", () => startTest("Z"));
   $("#extension-to-explain").addEventListener("click", () => goTo(4));
   $("#extension-check").addEventListener("click", checkExplanation);
   $("#extension-reset").addEventListener("click", reset);
   $("#extension-return").addEventListener("click", returnToLab);
   $("#extension-pause").addEventListener("click", () => {
-    if (finished) startTest(otherName);
+    if (!testStarted || finished) startTest(otherName);
     else {
       paused = !paused;
       render();
     }
+  });
+  root.querySelectorAll("[data-extension-step]").forEach((button) => {
+    button.addEventListener("click", () =>
+      goTo(Number(button.dataset.extensionStep)),
+    );
   });
   render();
 
@@ -226,9 +252,9 @@ export function setupExtension({ t, returnToLab }) {
     updateLanguage: render,
     tick(dt, time) {
       if (root.hidden || step !== 3) return;
-      if (!paused) animationTime += dt * Number($("#extension-speed").value);
-      if (!paused && !finished) {
-        const advance = dt * Number($("#extension-speed").value);
+      if (!paused) animationTime += dt * SIMULATION_SPEED;
+      if (testStarted && !paused && !finished) {
+        const advance = dt * SIMULATION_SPEED;
         x = advanceExtensionCell(x, advance);
         other = advanceExtensionCell(other, advance);
         if (x.status === "complete" && other.status === "complete") {
@@ -245,13 +271,15 @@ export function setupExtension({ t, returnToLab }) {
         ["#extension-canvas-x", x],
         ["#extension-canvas-other", other],
       ]) {
-        const displayVolume = 1 + (current.volume - 1) * 6;
+        const displayVolume =
+          1 + (current.volume - 1) * (current.name === "Z" ? 6 : 1);
         const trial = {
           cell: "animal",
+          appearance: "rbc",
           concentration: 0.9,
           volume: displayVolume,
           initialVolume: 1,
-          solutionPsi: SALINE_PSI * 1000,
+          solutionPsi: SALINE_PSI,
           status: current.status,
           burst: false,
           tone:
@@ -267,6 +295,7 @@ export function setupExtension({ t, returnToLab }) {
           labels: false,
           t,
           solute: "salt",
+          potential: () => extensionPotential(current),
         });
       }
     },

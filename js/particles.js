@@ -49,6 +49,8 @@ export function createParticles(geometry, trial, solute = "sucrose") {
         vy: Math.sin(direction) * speed,
         phase: rng() * TAU,
         transfer: null,
+        touching: false,
+        contactUntil: 0,
       });
     }
   }
@@ -62,6 +64,7 @@ export function createParticles(geometry, trial, solute = "sucrose") {
     width: geometry.width,
     height: geometry.height,
     clock: 0,
+    contactClock: 0,
     pairTimer: 0.2,
     sequence: 0,
     crossings: { in: 0, out: 0 },
@@ -139,7 +142,7 @@ function radialRoom(geometry, angle) {
   );
 }
 
-function launchBalancedPair(state, geometry, angle) {
+function launchBalancedPair(state, geometry, angle, intoVacuole = false) {
   const candidates = state.molecules
     .filter((p) => p.type === "water" && !p.transfer)
     .map((p) => {
@@ -185,7 +188,7 @@ function launchBalancedPair(state, geometry, angle) {
   if (!bestPair) return;
   const { incoming, outgoing, approach, inTurn, outTurn } = bestPair;
   const after = Math.min(
-    18,
+    intoVacuole ? geometry.base * 0.55 : 18,
     incoming.edge * 0.55,
     outgoing.room - outgoing.edge - 2,
   );
@@ -195,6 +198,7 @@ function launchBalancedPair(state, geometry, angle) {
   ]) {
     candidate.p.transfer = {
       kind: "balanced",
+      pairId: state.sequence,
       entering,
       angle: candidate.direction,
       elapsed: 0,
@@ -213,6 +217,7 @@ function crossMembrane(p, state, transfer) {
   if (transfer.crossed) return;
   transfer.crossed = true;
   p.inside = transfer.entering;
+  if (!p.touching) p.contactUntil = state.contactClock + 0.5;
   const direction = transfer.entering ? "in" : "out";
   state.crossings[direction]++;
   const quadrant = Math.floor(((transfer.angle + TAU) % TAU) / (Math.PI / 2));
@@ -267,6 +272,8 @@ function drift(p, state, geometry, dt, burst) {
     ny = p.y;
   }
   if (!burst && containsPoint(geometry.outline, nx, ny) !== p.inside) {
+    if (p.type === "water" && !p.touching)
+      p.contactUntil = state.contactClock + 0.5;
     p.vx *= -1;
     p.vy *= -1;
     // A moving membrane gently carries non-transferring cell contents with it.
@@ -283,13 +290,73 @@ function drift(p, state, geometry, dt, burst) {
   p.y = ny;
 }
 
-export function advanceParticles(state, geometry, trial, dt) {
+function touchesMembrane(outline, x, y) {
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i],
+      b = outline[(i + 1) % outline.length];
+    const dx = b.x - a.x,
+      dy = b.y - a.y;
+    const lengthSquared = dx * dx + dy * dy;
+    const fraction = lengthSquared
+      ? Math.max(
+          0,
+          Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / lengthSquared),
+        )
+      : 0;
+    if (
+      (x - a.x - fraction * dx) ** 2 + (y - a.y - fraction * dy) ** 2 <=
+      3.4 ** 2
+    )
+      return true;
+  }
+  return false;
+}
+
+function beginBurstMixing(state, geometry) {
+  state.burstStarted = state.contactClock;
+  const water = state.molecules.filter((p) => p.type === "water");
+  const available = [...water];
+  const columns = Math.ceil(
+    Math.sqrt((water.length * geometry.width) / geometry.height),
+  );
+  const rows = Math.ceil(water.length / columns);
+  // Redistribute the existing dots continuously across the shared solution.
+  // No separate intracellular compartment remains after membrane rupture.
+  for (let i = 0; i < water.length; i++) {
+    const x =
+      (((i % columns) + 0.3 + state.rng() * 0.4) * geometry.width) / columns;
+    const y =
+      ((Math.floor(i / columns) + 0.3 + state.rng() * 0.4) * geometry.height) /
+      rows;
+    let nearest = 0;
+    for (let j = 1; j < available.length; j++) {
+      if (
+        Math.hypot(available[j].x - x, available[j].y - y) <
+        Math.hypot(available[nearest].x - x, available[nearest].y - y)
+      )
+        nearest = j;
+    }
+    const p = available.splice(nearest, 1)[0];
+    p.mixing = { fromX: p.x, fromY: p.y, x, y };
+    p.inside = false;
+    p.transfer = null;
+    p.contactUntil = 0;
+  }
+}
+
+export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
   if (state.width !== geometry.width || state.height !== geometry.height) {
     const sx = geometry.width / state.width,
       sy = geometry.height / state.height;
     for (const p of state.molecules) {
       p.x *= sx;
       p.y *= sy;
+      if (p.mixing) {
+        p.mixing.fromX *= sx;
+        p.mixing.x *= sx;
+        p.mixing.fromY *= sy;
+        p.mixing.y *= sy;
+      }
       if (p.transfer) {
         p.transfer.angle = Math.atan2(
           Math.sin(p.transfer.angle) * sy,
@@ -311,6 +378,9 @@ export function advanceParticles(state, geometry, trial, dt) {
   }
   if (!(dt > 0)) return state;
   state.clock += dt;
+  state.contactClock += contactDt;
+  if (trial.burst && state.burstStarted === undefined)
+    beginBurstMixing(state, geometry);
   if (!trial.burst) {
     const waterCount = state.molecules.filter((p) => p.type === "water").length;
     const target = Math.max(
@@ -320,8 +390,24 @@ export function advanceParticles(state, geometry, trial, dt) {
         Math.round((state.initialInside * trial.volume) / state.initialVolume),
       ),
     );
-    // Net transfers use the same population as the balanced exchanges.
     const difference = target - projectedInside(state);
+    const changing = trial.status === "running" && trial.tone !== "iso";
+    if (!changing) {
+      const pairIds = [
+        ...new Set(
+          state.molecules
+            .filter((p) => p.transfer?.kind === "balanced")
+            .map((p) => p.transfer.pairId),
+        ),
+      ];
+      const keep = new Set(pairIds.slice(0, MAX_BALANCED_PAIRS));
+      for (const p of state.molecules) {
+        if (p.transfer?.kind === "balanced" && !keep.has(p.transfer.pairId))
+          p.transfer = null;
+      }
+    }
+    // Net osmosis can have more simultaneous crossings. The one-to-two
+    // matched-pair limit applies to the reference view and equilibrium.
     for (let i = 0; i < Math.min(3, Math.abs(difference)); i++) {
       const entering = difference > 0;
       const p = choose(state, entering, state.sequence++ * GOLDEN_ANGLE);
@@ -331,15 +417,32 @@ export function advanceParticles(state, geometry, trial, dt) {
     state.pairTimer -= dt;
     const balancedCount =
       state.molecules.filter((p) => p.transfer?.kind === "balanced").length / 2;
-    if (state.pairTimer <= 0 && balancedCount < MAX_BALANCED_PAIRS) {
+    const pairLimit = changing ? 4 : MAX_BALANCED_PAIRS;
+    if (state.pairTimer <= 0 && balancedCount < pairLimit) {
       const angle = state.sequence++ * GOLDEN_ANGLE;
-      launchBalancedPair(state, geometry, angle);
+      launchBalancedPair(
+        state,
+        geometry,
+        angle,
+        changing && trial.cell === "plant" && trial.tone === "hypo",
+      );
       state.pairTimer = 0.8;
     }
   }
   for (const p of state.molecules) {
     const transfer = p.transfer;
     if (trial.burst) p.transfer = null;
+    if (p.mixing) {
+      const progress = Math.min(
+        1,
+        (state.contactClock - state.burstStarted) / 2.6,
+      );
+      const eased = progress * progress * (3 - 2 * progress);
+      p.x = p.mixing.fromX + (p.mixing.x - p.mixing.fromX) * eased;
+      p.y = p.mixing.fromY + (p.mixing.y - p.mixing.fromY) * eased;
+      if (progress === 1) p.mixing = null;
+      continue;
+    }
     if (!p.transfer) {
       drift(p, state, geometry, dt, trial.burst);
       continue;
@@ -373,6 +476,13 @@ export function advanceParticles(state, geometry, trial, dt) {
     }
     if (progress === 1) p.transfer = null;
   }
+  for (const p of state.molecules) {
+    if (p.type !== "water") continue;
+    const touching =
+      !trial.burst && touchesMembrane(geometry.outline, p.x, p.y);
+    if (touching && !p.touching) p.contactUntil = state.contactClock + 0.5;
+    p.touching = touching;
+  }
   return state;
 }
 
@@ -386,6 +496,8 @@ export function particleSnapshot(state) {
         y: p.y,
         inside: p.inside,
         transferring: !!p.transfer,
+        flashing: p.contactUntil > state.contactClock,
+        flashRemaining: Math.max(0, p.contactUntil - state.contactClock),
       })),
     crossings: { ...state.crossings },
     transfers: {

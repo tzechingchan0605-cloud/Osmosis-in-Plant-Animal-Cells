@@ -62,11 +62,11 @@ test("Pure water makes the plant turgid while pressure balances inward osmosis",
   assert.equal(outcome(trial), "turgid");
   assert.ok(Math.abs(cellPotential("plant", trial.volume)) < 1e-7);
 });
-test("Pure water ruptures the red blood cell; mild hypotonic solution does not", () => {
+test("Pure water ruptures the animal cell; mild hypotonic solution does not", () => {
   const burst = finish(createTrial("animal", 0));
   assert.equal(burst.volume, BURST_VOLUME);
   assert.equal(burst.burst, true);
-  assert.equal(outcome(burst), "haemolysis");
+  assert.equal(outcome(burst), "lysed");
   const mild = finish(createTrial("animal", 5));
   assert.ok(mild.volume > 1 && mild.volume < BURST_VOLUME);
   assert.equal(mild.burst, false);
@@ -129,11 +129,11 @@ test("Every translation has a matching English and Traditional Chinese entry", (
     Object.keys(translations.zh).sort(),
   );
 });
-test("Extension X is unchanged, lower-potential Y swells, higher-potential Z shrinks", () => {
+test("Extension X is unchanged, higher-potential Y shrinks, lower-potential Z swells", () => {
   for (const [name, direction, expectedRatio] of [
     ["X", "none", 1],
-    ["Y", "in", 0.81 / 0.794],
-    ["Z", "out", 0.78 / 0.794],
+    ["Y", "out", 700 / 794],
+    ["Z", "in", 810 / 794],
   ]) {
     let cell = { ...createExtensionCell(name), status: "running" };
     assert.equal(cell.direction, direction);
@@ -144,9 +144,9 @@ test("Extension X is unchanged, lower-potential Y swells, higher-potential Z shr
     assert.ok(Math.abs(extensionPotential(cell) - SALINE_PSI) < 1e-10);
   }
 });
-test("Extension gradient ordering holds for MPa and is separate from sucrose conversion", () => {
-  assert.equal(extensionDirection(-0.81), "in");
-  assert.equal(extensionDirection(-0.794), "none");
-  assert.equal(extensionDirection(-0.78), "out");
-  assert.notEqual(concentrationToPotential(0.9) / 1000, SALINE_PSI);
+test("Extension gradient ordering holds for kPa and is separate from sucrose conversion", () => {
+  assert.equal(extensionDirection(-810), "in");
+  assert.equal(extensionDirection(-794), "none");
+  assert.equal(extensionDirection(-700), "out");
+  assert.notEqual(concentrationToPotential(0.9), SALINE_PSI);
 });

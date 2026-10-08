@@ -1,4 +1,7 @@
 import { cellGeometry, boundaryAt } from "./geometry.js";
+import { cellPotential } from "./model.js";
+import { drawRupturedCell } from "./rupture.js";
+import { cytoplasmDots, drawNucleus } from "./cell-details.js";
 import {
   createParticles,
   advanceParticles,
@@ -69,10 +72,25 @@ export function getParticleSnapshot(canvas) {
   return chamber ? particleSnapshot(chamber.particles) : null;
 }
 
+export function getStructureSnapshot(canvas) {
+  const structures = chambers.get(canvas)?.structures;
+  return structures ? structuredClone(structures) : null;
+}
+
 export function drawChamber(
   canvas,
   trial,
-  { time = 0, labels = true, t, solute = "sucrose", resetKey = 0 },
+  {
+    time = 0,
+    labels = true,
+    t,
+    solute = "sucrose",
+    resetKey = 0,
+    potential = (current) => cellPotential(current.cell, current.volume),
+    potentialScale = 1,
+    potentialUnit = "kPa",
+    potentialDigits = 1,
+  },
 ) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const bounds = canvas.getBoundingClientRect();
@@ -91,13 +109,14 @@ export function drawChamber(
   ctx.clearRect(0, 0, w, h);
   const geometry = cellGeometry(w, h, trial);
   const { cx, cy, base } = geometry;
-  const key = `${resetKey}:${trial.cell}:${trial.concentration}:${trial.initialVolume}:${solute}`;
+  const key = `${resetKey}:${trial.cell}:${trial.appearance ?? "regular"}:${trial.concentration}:${trial.initialVolume}:${solute}`;
   let chamber = chambers.get(canvas);
   if (!chamber || chamber.key !== key) {
     chamber = {
       key,
       particles: createParticles(geometry, trial, solute),
       time,
+      frameTime: performance.now() / 1000,
     };
     chambers.set(canvas, chamber);
   }
@@ -106,8 +125,10 @@ export function drawChamber(
     geometry,
     trial,
     Math.min(0.12, Math.max(0, time - chamber.time)),
+    Math.min(0.12, Math.max(0, performance.now() / 1000 - chamber.frameTime)),
   );
   chamber.time = time;
+  chamber.frameTime = performance.now() / 1000;
 
   const shadow = ctx.createRadialGradient(
     cx,
@@ -126,7 +147,7 @@ export function drawChamber(
   const callouts = [];
 
   if (trial.cell === "plant") {
-    const { innerW, innerH, vacuole } = geometry;
+    const { vacuole, nucleus } = geometry;
     membranePath(ctx, { commands: geometry.wallCommands });
     ctx.fillStyle = "#dcebc7";
     ctx.fill();
@@ -168,21 +189,41 @@ export function drawChamber(
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    const leftEdge = boundaryAt(geometry, Math.PI - 0.35);
-    ctx.beginPath();
-    ctx.ellipse(
-      cx + (leftEdge.x - cx) * 0.8,
-      cy + innerH * 0.12,
-      Math.max(3, innerW * 0.063),
-      Math.max(4, innerH * 0.053),
-      -0.1,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fillStyle = "#af87b6";
-    ctx.fill();
-    ctx.strokeStyle = "#916b9c";
-    ctx.stroke();
+    drawNucleus(ctx, nucleus);
+    for (const chloroplast of geometry.chloroplasts) {
+      ctx.save();
+      ctx.translate(chloroplast.x, chloroplast.y);
+      ctx.rotate(chloroplast.rotation);
+      ctx.translate(-chloroplast.x, -chloroplast.y);
+      ctx.beginPath();
+      ctx.ellipse(
+        chloroplast.x,
+        chloroplast.y,
+        chloroplast.rx,
+        chloroplast.ry,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = "#98c625";
+      ctx.fill();
+      ctx.strokeStyle = "#4d9637";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(
+        chloroplast.x - chloroplast.rx * 0.25,
+        chloroplast.y - chloroplast.ry * 0.65,
+      );
+      ctx.quadraticCurveTo(
+        chloroplast.x + chloroplast.rx * 0.45,
+        chloroplast.y,
+        chloroplast.x + chloroplast.rx * 0.25,
+        chloroplast.y + chloroplast.ry * 0.65,
+      );
+      ctx.stroke();
+      ctx.restore();
+    }
     if (labels) {
       const wallPoint = boundaryAt(
         { ...geometry, outline: geometry.wallOutline },
@@ -209,41 +250,25 @@ export function drawChamber(
     }
   } else {
     const { rx, ry } = geometry;
+    const rbc = trial.appearance === "rbc";
     const rg = ctx.createRadialGradient(cx, cy, base * 0.07, cx, cy, rx);
     rg.addColorStop(0, "#f5d5c9");
     rg.addColorStop(0.52, "#eeb5ad");
     rg.addColorStop(1, "#df978e");
-    ctx.fillStyle = rg;
-    ctx.strokeStyle = "#ca827b";
+    ctx.fillStyle = rbc ? rg : "#f7d4e2";
+    ctx.strokeStyle = rbc ? "#ca827b" : "#dd6b9d";
     ctx.lineWidth = 1.8;
     membranePath(ctx, geometry);
     if (!trial.burst) {
       ctx.fill();
       ctx.stroke();
     } else {
-      ctx.save();
-      ctx.globalAlpha = 0.4;
-      ctx.fill();
-      ctx.restore();
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, ry, 0, 0.5, Math.PI * 1.72);
-      ctx.stroke();
-      for (let i = 0; i < 17; i++) {
-        const a = i * 2.399,
-          distance = base * (1.1 + (i % 4) * 0.19);
-        ctx.fillStyle = "#d8938970";
-        ctx.beginPath();
-        ctx.arc(
-          cx + Math.cos(a) * distance,
-          cy + Math.sin(a) * distance * 0.8,
-          3 + (i % 3),
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-      }
+      chamber.burstTime ??= time;
+      const progress = Math.min(1, (time - chamber.burstTime) / 1.3);
+      drawRupturedCell(ctx, geometry, progress);
+      canvas.dataset.ruptureProgress = progress.toFixed(3);
     }
-    if (!trial.burst && trial.volume < 1.2) {
+    if (rbc && !trial.burst && trial.volume < 1.2) {
       ctx.beginPath();
       ctx.ellipse(cx, cy, rx * 0.52, ry * 0.48, 0, 0, Math.PI * 2);
       ctx.fillStyle = "#f8ded280";
@@ -251,26 +276,63 @@ export function drawChamber(
     }
     if (labels)
       callouts.push([
-        t(trial.burst ? "haemoglobin" : "cellMembrane"),
+        t(trial.burst ? "cytoplasmReleased" : "cellMembrane"),
         w - 10,
         37,
-        cx + rx * 0.8,
-        cy - ry * 0.6,
+        cx + rx * (trial.burst ? 1.12 : 0.8),
+        cy - ry * (trial.burst ? 0.3 : 0.6),
         "right",
       ]);
+    if (!rbc) {
+      drawNucleus(ctx, geometry.nucleus);
+      if (labels && !trial.burst) {
+        callouts.push([
+          t("nucleus"),
+          9,
+          h - 38,
+          geometry.nucleus.x - geometry.nucleus.rx,
+          geometry.nucleus.y,
+        ]);
+        callouts.push([
+          t("cytoplasm"),
+          w - 10,
+          h - 25,
+          cx + rx * 0.55,
+          cy + ry * 0.2,
+          "right",
+        ]);
+      }
+    }
   }
+
+  const fixedDots =
+    trial.appearance === "rbc" || trial.burst ? [] : cytoplasmDots(geometry);
+  ctx.fillStyle = "#e85b9499";
+  for (const dot of fixedDots) {
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, Math.max(0.75, base * 0.014), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  chamber.structures = {
+    appearance: trial.appearance ?? "regular",
+    nucleus: geometry.nucleus,
+    chloroplasts: geometry.chloroplasts ?? [],
+    cytoplasmDots: fixedDots,
+  };
 
   // Every dot belongs to the persistent population. Crossing dots do not spawn,
   // disappear, follow arrows, or change identity when the Start button is used.
   for (const p of chamber.particles.molecules) {
     if (p.type === "water") {
-      ctx.fillStyle = p.transfer
-        ? "#288ead"
-        : p.inside
+      const flashing =
+        !trial.burst && p.contactUntil > chamber.particles.contactClock;
+      ctx.fillStyle = flashing
+        ? "#0b5e83"
+        : p.inside && !trial.burst
           ? "#3999bba6"
           : "#459fc27a";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.transfer ? 3.0 : 2.5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, flashing ? 3.0 : 2.5, 0, Math.PI * 2);
       ctx.fill();
     } else if (solute === "salt") {
       ctx.fillStyle = "#c9a057a0";
@@ -288,4 +350,52 @@ export function drawChamber(
     }
   }
   for (const args of callouts) callout(ctx, ...args);
+  const cellPsi = trial.burst ? null : potential(trial);
+  canvas.dataset.cellPotential = cellPsi === null ? "" : String(cellPsi);
+  canvas.dataset.solutionPotential = String(trial.solutionPsi);
+  canvas.dataset.playbackSpeed = "0.5";
+  if (!trial.burst) delete canvas.dataset.ruptureProgress;
+  const number = (value) =>
+    (Math.abs(value * potentialScale) < 10 ** -potentialDigits / 2
+      ? 0
+      : value * potentialScale
+    )
+      .toFixed(potentialDigits)
+      .replace("-", "−");
+  canvas.setAttribute(
+    "aria-description",
+    `${t("solutionPsiShort")}: ${number(trial.solutionPsi)} ${potentialUnit}; ` +
+      (cellPsi === null
+        ? t("membraneBroken")
+        : `${t("cellPsiShort")}: ${number(cellPsi)} ${potentialUnit}`),
+  );
+  const badge = (title, value, x, y, maxWidth) => {
+    const fontSize = maxWidth < 95 ? 9 : 11;
+    ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
+    ctx.textAlign = "center";
+    const lines = [title, `${number(value)} ${potentialUnit}`];
+    const width = Math.min(
+      maxWidth,
+      Math.max(...lines.map((line) => ctx.measureText(line).width)) + 14,
+    );
+    ctx.fillStyle = "#ffffffdf";
+    ctx.beginPath();
+    ctx.roundRect(x - width / 2, y, width, 32, 5);
+    ctx.fill();
+    ctx.fillStyle = "#36586b";
+    lines.forEach((line, i) =>
+      ctx.fillText(line, x, y + 12 + i * 13, width - 8),
+    );
+  };
+  badge(
+    t("solutionPsiShort"),
+    trial.solutionPsi,
+    Math.min(72, w * 0.23),
+    6,
+    w * 0.43,
+  );
+  if (cellPsi !== null) {
+    const top = boundaryAt(geometry, -Math.PI / 2).y;
+    badge(t("cellPsiShort"), cellPsi, cx, top + 8, Math.min(130, base * 1.3));
+  }
 }

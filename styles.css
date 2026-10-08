@@ -694,21 +694,6 @@ input[type="range"] {
   margin-top: 3px;
   font-weight: 550;
 }
-.speed-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #8e9886;
-  font-size: 10px;
-}
-.speed-control select {
-  padding: 5px 7px;
-  border: 1px solid #e1e7d8;
-  border-radius: 6px;
-  color: #6d8260;
-  background: #fff;
-  font-size: 10px;
-}
 .chamber-footnote {
   border-top: 1px solid #edf0e7;
   display: flex;
@@ -1031,9 +1016,6 @@ summary {
   }
   .flow-strip {
     padding: 17px 16px;
-  }
-  .speed-control > span {
-    display: none;
   }
   .chamber-footnote {
     padding: 10px 16px;
@@ -1419,15 +1401,33 @@ summary {
 .extension-steps li {
   border: 1px solid #e1e7d8;
   border-radius: 9px;
-  padding: 13px 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 0;
   color: #9da68f;
   font-size: 12px;
   background: #f9faf5;
 }
-.extension-steps li > span:first-child {
+.extension-steps button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.extension-steps button:hover {
+  background: #dfeacc80;
+}
+.extension-steps button:focus-visible {
+  outline: 2px solid #638d51;
+  outline-offset: 3px;
+}
+.extension-steps button > span:first-child {
   font-size: 9px;
   opacity: 0.7;
 }
@@ -1620,18 +1620,6 @@ summary {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-.extension-test-actions label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: #96a588;
-}
-.extension-test-actions label select {
-  width: auto !important;
-  padding: 6px 8px !important;
-  font-size: 10px !important;
 }
 .small-action {
   border: 1px solid #d6e2c8;
@@ -1871,9 +1859,6 @@ summary {
   .extension-heading-row h2 {
     font-size: 27px;
   }
-  .extension-test-actions label > span {
-    display: none;
-  }
   .extension-metrics {
     font-size: 10px;
     align-items: flex-start;
@@ -1903,7 +1888,7 @@ summary {
   .extension-heading-row > .text-button {
     font-size: 9px;
   }
-  .extension-steps li {
+  .extension-steps button {
     font-size: 10px;
     padding: 10px 12px;
     gap: 6px;
@@ -1972,12 +1957,12 @@ summary {
   .extension-steps {
     gap: 5px;
   }
-  .extension-steps li {
+  .extension-steps button {
     font-size: 9px;
     padding: 10px 8px;
     gap: 5px;
   }
-  .extension-steps li > span:first-child {
+  .extension-steps button > span:first-child {
     font-size: 7px;
   }
   .micrograph-card figcaption {
@@ -2021,10 +2006,6 @@ summary {
     min-width: 45px;
     padding: 7px 9px;
     font-size: 9px;
-  }
-  .extension-test-actions label select {
-    font-size: 9px !important;
-    padding: 6px 5px !important;
   }
   .extension-saline-banner {
     padding: 13px 14px;
