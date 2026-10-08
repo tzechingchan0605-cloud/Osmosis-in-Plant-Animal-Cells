@@ -28,6 +28,7 @@ let cell = "plant",
   errorKey = null;
 let state = createTrial(cell, concentration);
 let before = { ...state };
+let particleEpoch = 0;
 let histories = [];
 try {
   const stored = JSON.parse(sessionStorage.getItem("osmosis-trials") || "[]");
@@ -110,6 +111,7 @@ function syncInputs(source) {
   $("#potential").min = minimumPotential;
 }
 function prepareTrial(source) {
+  particleEpoch++;
   state = createTrial(cell, concentration);
   before = { ...state };
   prediction = null;
@@ -399,6 +401,7 @@ $("#start-button").addEventListener("click", () => {
   else if (state.status === "paused") state.status = "running";
   else {
     if (state.status === "complete") {
+      particleEpoch++;
       state = createTrial(cell, concentration);
       before = { ...state };
     }
@@ -408,6 +411,7 @@ $("#start-button").addEventListener("click", () => {
 });
 $("#reset-button").addEventListener("click", () => prepareTrial());
 $("#recovery-button").addEventListener("click", () => {
+  particleEpoch++;
   const currentVolume = state.volume;
   concentration = 0;
   prediction = null;
@@ -438,8 +442,7 @@ $("#language-button").addEventListener("click", () => {
 $("#help-button").addEventListener("click", () =>
   $("#guide-dialog").showModal(),
 );
-for (const button of ["#close-guide", "#guide-done"])
-  $(button).addEventListener("click", () => $("#guide-dialog").close());
+$("#close-guide").addEventListener("click", () => $("#guide-dialog").close());
 $("#guide-dialog").addEventListener("click", (event) => {
   if (event.target === $("#guide-dialog")) {
     const r = event.target.getBoundingClientRect();
@@ -473,12 +476,14 @@ function frame(now) {
     }
   }
   if (!document.hidden) {
-    const options = { time: visualTime, labels: $("#show-labels").checked, t };
-    drawChamber($("#before-canvas"), before, { ...options, active: false });
-    drawChamber($("#after-canvas"), state, {
-      ...options,
-      active: state.status !== "ready",
-    });
+    const options = {
+      time: visualTime,
+      labels: $("#show-labels").checked,
+      resetKey: particleEpoch,
+      t,
+    };
+    drawChamber($("#before-canvas"), before, options);
+    drawChamber($("#after-canvas"), state, options);
     extension.tick(dt, now / 1000);
   }
   requestAnimationFrame(frame);

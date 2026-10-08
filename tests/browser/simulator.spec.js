@@ -65,6 +65,9 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-Hant");
   await expect(page.locator("#result-heading")).toHaveText("高滲溶液");
   await expect(page.locator("#conclusion")).toContainText("質壁分離");
+  await expect(page.locator("#conclusion")).toContainText(
+    "水分子藉滲透淨移動離開細胞，即水分子進入細胞的速率較離開細胞的速率低，直至細胞內、外的水分達至平衡。",
+  );
   await expect(page.locator("#after-volume")).toHaveText(finalVolume);
   await page.locator("#recovery-button").click();
   await expect(page.locator("#before-volume")).toHaveText(finalVolume);
@@ -152,6 +155,9 @@ test("Mobile layout fits the screen, and the science guide is keyboard accessibl
   await page.locator("#help-button").click();
   await expect(page.locator("#guide-dialog")).toBeVisible();
   await expect(page.locator("#guide-dialog")).toContainText("差異透性膜");
+  await expect(page.locator("#guide-dialog")).toContainText("細胞壁具全透性");
+  await expect(page.locator("#guide-dialog details")).toHaveCount(0);
+  await expect(page.locator("#guide-dialog")).not.toContainText("開始探索");
   await page.keyboard.press("Escape");
   await expect(page.locator("#guide-dialog")).toBeHidden();
   await page.locator('[data-preset="equal"]').click();
@@ -162,4 +168,55 @@ test("Mobile layout fits the screen, and the science guide is keyboard accessibl
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
+});
+
+test("Water keeps its identity across Start, pause and equilibrium, with balanced initial exchanges", async ({
+  page,
+}) => {
+  const snapshot = () =>
+    page.evaluate(async () => {
+      const { getParticleSnapshot } = await import("/js/renderer.js");
+      return getParticleSnapshot(document.querySelector("#after-canvas"));
+    });
+  await page.locator('[data-preset="strong"]').click();
+  const initial = await snapshot();
+  await expect
+    .poll(async () => (await snapshot()).crossings.in)
+    .toBeGreaterThan(2);
+  const ready = await snapshot();
+  expect(ready.inside).toBe(initial.inside);
+  expect(ready.crossings.in).toBe(ready.crossings.out);
+  expect(
+    ready.water.some((p, i) => p.inside !== initial.water[i].inside),
+  ).toBeTruthy();
+  await page.locator("#start-button").click();
+  await expect
+    .poll(async () => (await snapshot()).inside)
+    .toBeLessThan(initial.inside);
+  await page.locator("#start-button").click();
+  await expect(page.locator("#status")).toHaveText("Paused");
+  const paused = await snapshot();
+  await page.waitForTimeout(300);
+  expect(await snapshot()).toEqual(paused);
+  await page.locator("#language-button").click();
+  expect(await snapshot()).toEqual(paused);
+  await page.locator("#start-button").click();
+  await expect(page.locator("#result-card")).toBeVisible();
+  await expect.poll(async () => (await snapshot()).inside).toBe(10);
+  const complete = await snapshot();
+  expect(complete.water.map((p) => p.id)).toEqual(
+    initial.water.map((p) => p.id),
+  );
+  expect(complete.crossings.in).toBeGreaterThanOrEqual(ready.crossings.in);
+  expect(complete.crossings.out).toBeGreaterThan(complete.crossings.in);
+  await expect
+    .poll(async () => (await snapshot()).crossings.in)
+    .toBeGreaterThan(complete.crossings.in + 3);
+  const later = await snapshot();
+  expect(later.inside).toBe(complete.inside);
+  expect(later.crossings.in - complete.crossings.in).toBe(
+    later.crossings.out - complete.crossings.out,
+  );
+  expect(later.quadrants.in.every((n) => n > 0)).toBeTruthy();
+  expect(later.quadrants.out.every((n) => n > 0)).toBeTruthy();
 });

@@ -2,7 +2,6 @@ import { extensionView } from "./extension-view.js";
 import {
   SALINE_PSI,
   createExtensionCell,
-  extensionPotential,
   advanceExtensionCell,
 } from "./extension-model.js";
 import { drawChamber } from "./renderer.js";
@@ -20,7 +19,8 @@ export function setupExtension({ t, returnToLab }) {
   let results = {},
     lastRender = 0,
     feedbackShown = false,
-    animationTime = 0;
+    animationTime = 0,
+    particleEpoch = 0;
   const signedChange = (current) => {
     const change = (current.volume - 1) * 100;
     return Math.abs(change) < 0.005
@@ -35,6 +35,7 @@ export function setupExtension({ t, returnToLab }) {
     render();
   }
   function startTest(name) {
+    particleEpoch++;
     otherName = name;
     x = { ...createExtensionCell("X"), status: "running" };
     other = { ...createExtensionCell(name), status: "running" };
@@ -258,11 +259,10 @@ export function setupExtension({ t, returnToLab }) {
         };
         drawChamber($(selector), trial, {
           time: animationTime,
-          active: true,
+          resetKey: particleEpoch,
           labels: false,
           t,
           solute: "salt",
-          potential: () => extensionPotential(current) * 1000,
         });
       }
     },

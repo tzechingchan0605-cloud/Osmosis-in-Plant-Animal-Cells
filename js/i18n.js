@@ -85,27 +85,7 @@ export const translations = {
     guideBoth:
       "Water moves in both directions. At equal water potential, the rates are equal: there is no net movement.",
     guideWall:
-      "A plant cell wall resists expansion, so a plant cell becomes turgid rather than bursting. The wall is permeable; the cell membrane is differentially permeable.",
-    guideSugar:
-      "In this model, sucrose does not cross the cell membrane. The surrounding solution is a large reservoir, so its concentration stays constant.",
-    teacherNotes: "Model & teacher notes",
-    guidePreset:
-      "Both cells start at −500 kPa for comparison. This is an illustrative model value, not a measured value for all plant cells or red blood cells. Every fresh trial starts with the same cell state.",
-    guideConversion:
-      "Concentration is % w/v (g sucrose per 100 mL solution). At 25°C, an ideal-solution approximation gives Ψ ≈ −72.4 × concentration (%) kPa. This is a teaching approximation, especially at higher concentrations, and is not a conversion table from the textbook.",
-    guidePressure:
-      "The cell contains a fixed amount of impermeant solute. Its water potential changes as water enters or leaves. Plant-cell pressure rises during expansion and stops net water entry at equilibrium. Animation speed is illustrative, not a real biological time scale.",
-    guideOutcomes:
-      "Small differences can produce only slight changes. Mildly hypotonic red blood cells may swell without bursting; slight water loss can leave a plant cell flaccid without visible plasmolysis. The outcome follows the final volume.",
-    guideEquality:
-      "Values within 1 kPa are treated as equal to accommodate rounded inputs. Tonicity labels describe the solution relative to the cell at the beginning of that trial, even after equilibrium is reached.",
-    guideRecovery:
-      "Replacing the solution with distilled water keeps the plant cell's current contents and volume. Reset restores the original cell. The notebook keeps up to 12 trials in this browser session.",
-    guideSalt:
-      "The textbook’s 0.9% isotonic solution is sodium chloride, not sucrose. Haemolysis specifically means red blood cells bursting and releasing haemoglobin.",
-    guideSources:
-      "Terminology and learning sequence: supplied English and Chinese Chapter 4 textbooks, pp. 4-14–4-21; answer guidance on p. 4-37. Diagrams here are newly drawn schematics.",
-    letsExplore: "Let’s explore",
+      "A plant cell wall resists expansion, so a plant cell becomes turgid rather than bursting. The wall is freely permeable to water and sucrose; the cell membrane is differentially permeable. During plasmolysis, the surrounding solution enters the space between the wall and membrane.",
     ready: "Ready to explore",
     running: "Observing",
     paused: "Paused",
@@ -128,14 +108,14 @@ export const translations = {
     hypoMovement:
       "Water moved into the cell by osmosis. Water also moved out, but at a lower rate initially.",
     hyperMovement:
-      "Water moved out of the cell by osmosis. Water also moved in, but at a lower rate initially.",
+      "Water molecules moved out of the cell by osmosis overall: the inward rate was lower than the outward rate until the water potentials inside and outside the cell reached equilibrium.",
     isoMovement:
       "Water moved in both directions at equal rates. There was no net movement.",
     unchangedDescription: "The cell’s shape and volume remained unchanged.",
     turgidDescription:
       "The vacuole enlarged and the cell became turgid. The cell wall resisted further expansion; water still moves both ways at equilibrium.",
     plasmolysedDescription:
-      "The vacuole and cytoplasm shrank. The cell membrane detached from the cell wall: plasmolysis occurred and the cell became flaccid.",
+      "The vacuole shrank. The cell membrane pulled away from the wall along the sides, retaining the four corner attachments shown in this diagram. This is plasmolysis; the cell became flaccid.",
     flaccidDescription:
       "The cell lost some water and became flaccid, without obvious plasmolysis in this trial.",
     wrinkledDescription: "The red blood cell shrank and became wrinkled.",
@@ -369,27 +349,7 @@ export const translations = {
     guideBoth:
       "水分子會向兩個方向移動。當水勢相同時，兩邊的移動速率相同，因此沒有淨移動。",
     guideWall:
-      "植物細胞壁能抵抗膨脹，因此細胞會變得硬脹而不會爆裂。細胞壁具透性，細胞膜則具差異透性。",
-    guideSugar:
-      "在此模型中，蔗糖不能穿過細胞膜。周圍溶液的體積很大，因此模擬過程中溶液濃度維持不變。",
-    teacherNotes: "模型說明及教師備註",
-    guidePreset:
-      "兩種細胞的起始水勢均為 −500 kPa，方便比較。這是教學模型數值，並非所有植物細胞或紅血細胞的實測水勢。每次新實驗均由相同細胞狀態開始。",
-    guideConversion:
-      "濃度為質量／體積百分比（每 100 mL 溶液所含的蔗糖克數）。在 25°C，理想溶液近似公式為 Ψ ≈ −72.4 × 濃度（%）kPa。此換算僅供教學用途，在高濃度時尤其屬近似值，並非課本提供的換算表。",
-    guidePressure:
-      "細胞內不能穿膜的溶質總量固定。水進入或離開時，細胞水勢會改變。植物細胞膨脹時壓力上升，最終達到平衡，沒有水的淨移動。動畫時間並非真實生物過程所需時間。",
-    guideOutcomes:
-      "水勢差異很小時，細胞可能只有輕微變化。在輕微低滲溶液中的紅血細胞可能膨脹而不爆裂；植物細胞輕微失水時可能呈軟縮狀態，但未出現明顯質壁分離。結果取決於最終體積。",
-    guideEquality:
-      "相差不超過 1 kPa 的數值視為相同，以配合輸入數值的四捨五入。即使細胞最終達到平衡，溶液的滲性標示仍以該次實驗的起始細胞作比較。",
-    guideRecovery:
-      "換成蒸餾水時會保留植物細胞目前的內容物和體積。「重設」則恢復原本細胞。實驗筆記會在本次瀏覽期間保留最多 12 次紀錄。",
-    guideSalt:
-      "課本的 0.9% 等滲溶液是氯化鈉溶液，不是蔗糖溶液。「溶血」專指紅血細胞爆裂並釋出血紅蛋白。",
-    guideSources:
-      "用語及學習流程參考提供的中英文第 4 章課本，第 4-14 至 4-21 頁；答題指引見第 4-37 頁。此模擬中的圖像為重新繪製的示意圖。",
-    letsExplore: "開始探索",
+      "植物細胞壁能抵抗膨脹，因此細胞會變得硬脹而不會爆裂。細胞壁具全透性，水分子和蔗糖分子都能穿過；細胞膜則具差異透性。質壁分離時，周圍的溶液會進入細胞壁與細胞膜之間的空間。",
     ready: "準備好探索",
     running: "觀察中",
     paused: "已暫停",
@@ -407,13 +367,14 @@ export const translations = {
     isoRelation: "溶液與細胞的起始水勢相同（約 {cell} kPa）。",
     hyperRelation: "溶液的起始水勢較細胞低（{solution} kPa < {cell} kPa）。",
     hypoMovement: "水藉滲透進入細胞。水也會離開細胞，但起初離開的速率較低。",
-    hyperMovement: "水藉滲透離開細胞。水也會進入細胞，但起初進入的速率較低。",
+    hyperMovement:
+      "水分子藉滲透淨移動離開細胞，即水分子進入細胞的速率較離開細胞的速率低，直至細胞內、外的水分達至平衡。",
     isoMovement: "水分子向兩個方向移動，速率相同，因此沒有淨移動。",
     unchangedDescription: "細胞的形狀和體積維持不變。",
     turgidDescription:
       "液泡脹大，細胞變得硬脹。細胞壁抵抗進一步膨脹；達到平衡時，水仍會向兩個方向移動。",
     plasmolysedDescription:
-      "液泡和細胞質萎縮，細胞膜與細胞壁分離，出現質壁分離，細胞呈軟縮狀態。",
+      "液泡萎縮，細胞膜沿四邊與細胞壁分離；在此圖中，四角仍與細胞壁相連。細胞出現質壁分離，呈軟縮狀態。",
     flaccidDescription:
       "細胞失去少量水，呈軟縮狀態，但本次實驗未出現明顯質壁分離。",
     wrinkledDescription: "紅血細胞萎縮，變得皺褶。",

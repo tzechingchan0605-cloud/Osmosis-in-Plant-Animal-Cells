@@ -32,6 +32,10 @@ All application asset paths are relative, so the simulator works under a reposit
 
 The top-right language control translates controls, diagrams, feedback and saved notebook entries while preserving the current experiment.
 
+The starting plant membrane is flush with the cell wall. During plasmolysis, its four rounded corners retain contact with the wall while the sides bow inward and the vacuole becomes smaller. This is the attachment pattern chosen for the teaching diagram; real attachment patterns can vary.
+
+Water molecules keep their identities and move across the membrane from around the whole cell. Equal inward and outward exchanges continue in the starting view and at equilibrium; during osmosis, additional transfers change the amount of water inside. Starting, pausing and changing language preserve the particles. Resetting or changing the experiment prepares a fresh population. Leader lines have horizontal ends beside their labels.
+
 ### Extension study / 延伸學習
 
 **Observe → Hypothesise → Test → Explain.** Students examine the teacher-supplied blood photo. Straight black biological leader lines label the selected regular red blood cell A and shrunken red blood cell B, with no circles or arrowheads.
@@ -56,7 +60,7 @@ The extension enlarges small shape changes sixfold for visibility. Its numerical
 - Pure water is 0 kPa; adding sucrose lowers water potential. The concentration control is **% w/v**, grams of sucrose per 100 mL solution.
 - At 25°C, the ideal-solution approximation is `Ψ = −CRT ≈ −72.416 × concentration(%) kPa`, using sucrose molar mass 342.3 g/mol. Accuracy decreases at higher concentrations; this is not a conversion table from the textbook.
 - Fresh core-lab cells start at **−500 kPa**, with a fixed amount of impermeant internal solute. This is an illustrative comparative model value, not the measured potential of every real cell. Their water potentials change during osmosis.
-- The bath is a large reservoir whose concentration stays constant. Sucrose does not cross the cell membrane in this model. The cell wall is permeable.
+- The bath is a large reservoir whose concentration stays constant. Sucrose does not cross the cell membrane in this model. The cell wall is freely permeable to water and sucrose, so both can enter the space between wall and membrane during plasmolysis. The wall is not used as a particle barrier.
 - Animal-cell solute potential changes inversely with relative water volume. The illustrative red-blood-cell rupture threshold is 1.6 times its starting volume; mild hypotonic solutions can produce swelling without haemolysis.
 - Plant-cell potential combines the solute term with an illustrative rising pressure term above starting volume: `Ψcell = −500/V + max(0, V − 1) × 3000 kPa`. The pressure term resists expansion and permits equilibrium in pure water. The fixed wall outline contains changing cell contents; the volume display refers to those contents, not wall-enclosed volume.
 - Fresh plant cells start in a flaccid reference state. Water loss can cause flaccidity before marked plasmolysis; obvious plasmolysis is represented below relative contents volume 0.9.
@@ -81,7 +85,7 @@ npm test
 npm run test:browser
 ```
 
-The model suite covers the concentration conversion, direction of osmosis, isotonic states, plant pressure equilibrium, red-blood-cell rupture, plasmolysis, recovery and the extension's X/Y/Z outcomes. The browser suite exercises linked inputs, invalid values, animation controls, both languages, predictions, notebook persistence, mobile layout, photo leader lines and attribution, and the complete extension with final feedback.
+The model and animation suites cover the concentration conversion, direction of osmosis, isotonic states, plant pressure equilibrium, red-blood-cell rupture, plasmolysis, recovery and the extension's X/Y/Z outcomes. They also check initial membrane–wall contact, persistent corner attachments, conserved water identities, exchanges in all four quadrants, balanced equilibrium, and wall permeability to water and sucrose while the membrane excludes sucrose. The browser suite exercises linked inputs, invalid values, animation controls, persistent particles across Start/pause/language changes, both languages, predictions, notebook persistence, mobile layout, photo leader lines and attribution, and the complete extension with final feedback.
 
 Browser tests use `/usr/bin/chromium` when available. On another machine install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Test reports and dependency directories are ignored by Git.
 
@@ -89,7 +93,7 @@ Browser tests use `/usr/bin/chromium` when available. On another machine install
 
 - `index.html`, `styles.css`: accessible page structure and responsive design.
 - `js/model.js`: core sucrose/cell model.
-- `js/renderer.js`: cell diagrams, labels and schematic transport.
+- `js/renderer.js`, `js/geometry.js`, `js/particles.js`: cell diagrams, biological leader lines, shared membrane boundaries and persistent particles.
 - `js/app.js`, `js/i18n.js`: application controls and bilingual terminology.
 - `js/extension*.js`: separate saline model and guided extension activity.
 - `scripts/serve.mjs`: dependency-free static development server.
