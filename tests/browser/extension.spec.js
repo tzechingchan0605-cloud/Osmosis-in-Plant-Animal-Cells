@@ -14,6 +14,7 @@ test("Supplied photo uses biological leader lines and the requested source citat
   await page.goto("/");
   await page.locator("#extension-button").click();
   await expect(page.locator("#extension-study")).toBeVisible();
+  await expect(page.locator("#extension-next-1")).toBeDisabled();
   await expect(page.locator(".biological-leaders line")).toHaveCount(2);
   await expect(page.locator(".biological-photo circle")).toHaveCount(0);
   await expect(page.locator(".biological-labels")).toContainText(
@@ -49,32 +50,35 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
   await page.goto("/");
   await page.locator("#extension-button").click();
   await page.locator("#compare-psi-a").selectOption("equal");
-  await page.locator("#compare-psi-b").selectOption("lower");
+  await page.locator("#compare-psi-b").selectOption("higher");
   await page.locator("#extension-next-1").click();
   await expect(page.locator("#extension-step-2")).toContainText("−700 kPa");
   await expect(page.locator("#extension-step-2")).not.toContainText("MPa");
   await expect(
     page.locator("#extension-hypothesis, #extension-reason"),
   ).toHaveCount(0);
-  await expect(page.locator("#extension-step-2")).toContainText(
-    "A TESTABLE HYPOTHESIS",
-  );
+  await expect(
+    page.locator(
+      ".hypothesis-test-card, #predict-a, #predict-b, #extension-start-test",
+    ),
+  ).toHaveCount(0);
   await expect(page.locator("#extension-step-2")).toContainText("Cell A");
   await expect(page.locator("#extension-step-2")).toContainText("Cell B");
-  await page.locator("#predict-a").selectOption("none");
-  await page.locator("#predict-b").selectOption("out");
   await page.locator("#language-button").click();
   await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
-  await expect(page.locator("#compare-psi-b")).toHaveValue("lower");
-  await expect(page.locator("#extension-step-2")).toContainText("可測試的假說");
-  await page.locator("#extension-start-test").click();
+  await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
+  await expect(page.locator(".extension-steps button")).toHaveText([
+    "01觀察及提出假說",
+    "02測試",
+    "03解釋",
+  ]);
   await expect(page.locator("#extension-test-result")).toBeVisible();
   await expect(page.locator("#extension-volume-a")).toHaveText("體積：0.00%");
   await expect(page.locator("#extension-volume-other")).toHaveText(
     "體積：−11.84%",
   );
   await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 B 失水並萎縮。",
+    "你的假說：模擬結果",
   );
   await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
     "data-solution-potential",
@@ -86,10 +90,12 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
   );
   await expect(page.locator("#extension-result-points .key-point")).toHaveText([
     "速率相同",
+    "沒有淨移動",
     "維持不變",
     "高",
     "淨",
-    "離開 B",
+    "離開細胞",
+    "萎縮",
     "減少",
     "沒有淨移動",
   ]);
@@ -106,13 +112,11 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
   await page.locator('[data-extension-step="1"]').click();
   await expect(page.locator("#extension-step-1")).toBeVisible();
   await page.locator('[data-extension-step="2"]').click();
-  await expect(page.locator("#compare-psi-b")).toHaveValue("lower");
-  await expect(page.locator("#predict-b")).toHaveValue("out");
-  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
   await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 B 失水並萎縮。",
+    "你的假說：模擬結果",
   );
-  await page.locator('[data-extension-step="4"]').click();
+  await page.locator('[data-extension-step="3"]').click();
   await expect(page.locator("#extension-summary-body tr")).toHaveCount(2);
   await page.locator("#infer-a").selectOption("equal");
   await page.locator("#infer-b").selectOption("lower");
@@ -141,24 +145,24 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
   await expect(page.locator("#core-lab")).toBeVisible();
 });
 
-test("All four stage buttons support review, keyboard activation and pausing without losing answers", async ({
+test("All three stage buttons support review, keyboard activation and pausing without losing answers", async ({
   page,
 }) => {
   await page.goto("/");
   await page.locator("#extension-button").click();
-  await expect(page.locator(".extension-steps button")).toHaveCount(4);
-  await page.locator('[data-extension-step="4"]').click();
-  await expect(page.locator("#extension-step-4")).toBeVisible();
+  await expect(page.locator(".extension-steps button")).toHaveCount(3);
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-step-3")).toBeVisible();
   await expect(page.locator("#extension-review-note")).toBeVisible();
   await expect(page.locator("#extension-summary-body tr")).toHaveCount(0);
+  await page.locator('[data-extension-step="1"]').click();
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await page.locator("#compare-psi-b").selectOption("higher");
   await page.locator('[data-extension-step="2"]').focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#extension-step-2")).toBeVisible();
-  await page.locator("#predict-a").selectOption("none");
-  await page.locator("#predict-b").selectOption("out");
-  await page.locator('[data-extension-step="3"]').click();
   await expect(page.locator("#extension-pause")).toHaveText(
-    "Test the predictions",
+    "Test the hypothesis",
   );
   const rbcDetails = await page.evaluate(async () => {
     const { getStructureSnapshot } = await import("/js/renderer.js");
@@ -175,7 +179,7 @@ test("All four stage buttons support review, keyboard activation and pausing wit
   await page.locator("#extension-pause").click();
   await page.waitForTimeout(600);
   await page.locator('[data-extension-step="1"]').click();
-  await page.locator('[data-extension-step="3"]').click();
+  await page.locator('[data-extension-step="2"]').click();
   await expect(page.locator("#extension-pause")).toHaveText("Resume");
   const pausedPsi = await page
     .locator("#extension-canvas-other")
@@ -187,9 +191,9 @@ test("All four stage buttons support review, keyboard activation and pausing wit
     "data-cell-potential",
     pausedPsi,
   );
-  await page.locator('[data-extension-step="2"]').click();
-  await expect(page.locator("#predict-a")).toHaveValue("none");
-  await expect(page.locator("#predict-b")).toHaveValue("out");
+  await page.locator('[data-extension-step="1"]').click();
+  await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
+  await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
 });
 test("Extension fits a mobile screen and switching activities pauses the core experiment", async ({
   page,
@@ -209,13 +213,14 @@ test("Extension fits a mobile screen and switching activities pauses the core ex
     .boundingBox();
   expect(questionBox.y).toBeGreaterThanOrEqual(photoBox.y + photoBox.height);
   expect(questionBox.width).toBeGreaterThan(300);
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await page.locator("#compare-psi-b").selectOption("higher");
   await page.locator("#extension-next-1").click();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
-  await page.locator("#extension-start-test").click();
   await page.locator("#extension-pause").click();
   const value = await page.locator("#extension-volume-other").textContent();
   await page.waitForTimeout(250);
@@ -233,4 +238,64 @@ test("Extension fits a mobile screen and switching activities pauses the core ex
   await expect(page.locator("#compare-psi-b")).toHaveValue("");
   await page.locator("#core-button").click();
   await expect(page.locator("#status")).toHaveText("Paused");
+});
+
+test("Student hypotheses change both cell outcomes, compare against the photo and can be revised", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#extension-button").click();
+  await page.locator('[data-extension-step="2"]').click();
+  await expect(page.locator("#extension-hypothesis-required")).toBeVisible();
+  await expect(page.locator("#extension-test-card")).toBeHidden();
+  await page.locator("#extension-to-hypothesis").click();
+  await page.locator("#compare-psi-a").selectOption("higher");
+  await expect(page.locator("#extension-next-1")).toBeDisabled();
+  await page.locator("#compare-psi-b").selectOption("lower");
+  await page.locator("#extension-next-1").click();
+  await expect(page.locator("#extension-initial-a")).toContainText("−700 kPa");
+  await expect(page.locator("#extension-initial-other")).toContainText(
+    "−900 kPa",
+  );
+  await expect(page.locator("#extension-flow-a")).toHaveText("Out of the cell");
+  await expect(page.locator("#extension-flow-other")).toHaveText(
+    "Into the cell",
+  );
+  await expect(page.locator("#extension-test-result")).toBeVisible();
+  await expect(page.locator("#extension-volume-a")).toHaveText(
+    "Volume: −11.84%",
+  );
+  await expect(page.locator("#extension-volume-other")).toHaveText(
+    "Volume: +13.35%",
+  );
+  await expect(
+    page.locator('#extension-photo-comparison [data-matches-photo="false"]'),
+  ).toHaveCount(2);
+  await page.locator("#extension-to-explain").click();
+  await expect(
+    page.locator('#extension-summary-comparison [data-matches-photo="false"]'),
+  ).toHaveCount(2);
+  await expect(
+    page.locator("#extension-summary-body tr td:nth-child(2)"),
+  ).toHaveText(["−700", "−900"]);
+  await page.locator("#extension-revise-summary").click();
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await page.locator("#compare-psi-b").selectOption("higher");
+  await page.locator("#language-button").click();
+  await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
+  await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
+  await page.locator("#extension-next-1").click();
+  await expect(page.locator("#extension-initial-a")).toHaveText(
+    "Ψ₀ = −794 kPa （假設）",
+  );
+  await expect(page.locator("#extension-initial-other")).toHaveText(
+    "Ψ₀ = −700 kPa （假設）",
+  );
+  await expect(page.locator("#extension-test-result")).toBeVisible();
+  await expect(
+    page.locator('#extension-photo-comparison [data-matches-photo="true"]'),
+  ).toHaveCount(2);
+  await expect(page.locator("#extension-photo-comparison")).toContainText(
+    "支持此假說",
+  );
 });

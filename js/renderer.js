@@ -2,6 +2,7 @@ import { cellGeometry, boundaryAt } from "./geometry.js";
 import { cellPotential } from "./model.js";
 import { drawRupturedCell } from "./rupture.js";
 import { cytoplasmDots, drawNucleus } from "./cell-details.js";
+import { cytoplasmLabelBox } from "./potential-labels.js";
 import {
   createParticles,
   advanceParticles,
@@ -339,19 +340,8 @@ export function drawChamber(
             ? "#3999bba6"
             : "#459fc27a";
       ctx.beginPath();
-      ctx.arc(
-        p.x,
-        p.y,
-        vacuoleIntake ? 4.2 : flashing ? 3.0 : 2.5,
-        0,
-        Math.PI * 2,
-      );
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
       ctx.fill();
-      if (vacuoleIntake) {
-        ctx.strokeStyle = "#ffffffc0";
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-      }
     } else if (solute === "salt") {
       ctx.fillStyle = "#c9a057a0";
       ctx.beginPath();
@@ -400,60 +390,50 @@ export function drawChamber(
     difference > 0 ? "#248146" : difference < 0 ? "#b32b2b" : "#000000";
   const solutionColor =
     difference < 0 ? "#248146" : difference > 0 ? "#b32b2b" : "#000000";
-  const badge = (
-    title,
-    value,
-    x,
-    y,
-    valueColor,
-    align = "center",
-    maxBottom = Infinity,
-  ) => {
+  const badge = (title, value, valueColor, inside) => {
     const separator = document.documentElement.lang.startsWith("zh")
       ? "："
       : ": ";
     const titleText = `${title}${separator}`;
     const valueText = `${number(value)}${potentialUnit}`;
-    let fontSize = w < 220 ? 18 : 22;
-    const setFont = () => {
+    let box, metrics, fontSize;
+    for (fontSize = inside ? 12 : 16; fontSize >= 3; fontSize -= 0.5) {
       ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
-    };
-    setFont();
-    const availableWidth = w - 16;
-    const fullWidth = ctx.measureText(titleText + valueText).width;
-    if (fullWidth + 8 > availableWidth) {
-      fontSize *= (availableWidth - 8) / fullWidth;
-      setFont();
+      metrics = ctx.measureText(titleText + valueText);
+      const width = metrics.width + 4;
+      const height =
+        Math.ceil(
+          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+        ) + 4;
+      box = inside
+        ? cytoplasmLabelBox(geometry, width, height)
+        : width <= Math.min(180, w - 24)
+          ? { x: 12, y: 6, width, height }
+          : null;
+      if (box) break;
     }
+    if (!box) return;
     const titleWidth = ctx.measureText(titleText).width;
-    const width = titleWidth + ctx.measureText(valueText).width + 8;
-    const height = fontSize + 8;
-    y = Math.min(y, maxBottom - height);
-    const left = Math.max(
-      8,
-      Math.min(w - width - 8, align === "left" ? x : x - width / 2),
-    );
+    const baseline = box.y + 2 + metrics.actualBoundingBoxAscent;
     ctx.textAlign = "left";
     ctx.fillStyle = "#ffffffdf";
     ctx.beginPath();
-    ctx.roundRect(left, y, width, height, 3);
+    ctx.roundRect(box.x, box.y, box.width, box.height, 3);
     ctx.fill();
     ctx.fillStyle = "#36586b";
-    ctx.fillText(titleText, left + 4, y + fontSize + 3);
+    ctx.fillText(titleText, box.x + 2, baseline);
     ctx.fillStyle = valueColor;
-    ctx.fillText(valueText, left + 4 + titleWidth, y + fontSize + 3);
+    ctx.fillText(valueText, box.x + 2 + titleWidth, baseline);
+    chamber.structures.potentialLabels[inside ? "cell" : "solution"] = {
+      ...box,
+      fontSize,
+      text: titleText + valueText,
+      valueColor,
+    };
   };
-  badge(t("solutionPsiShort"), trial.solutionPsi, 12, 6, solutionColor, "left");
+  chamber.structures.potentialLabels = {};
+  badge(t("solutionPsiShort"), trial.solutionPsi, solutionColor, false);
   if (cellPsi !== null) {
-    const top = boundaryAt(geometry, -Math.PI / 2).y;
-    badge(
-      t("cellPsiShort"),
-      cellPsi,
-      cx,
-      top - 20,
-      cellColor,
-      "center",
-      geometry.vacuole ? geometry.vacuole.y - geometry.vacuole.ry - 2 : top - 3,
-    );
+    badge(t("cellPsiShort"), cellPsi, cellColor, true);
   }
 }

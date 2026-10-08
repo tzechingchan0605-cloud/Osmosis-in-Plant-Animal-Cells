@@ -68,7 +68,7 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await page.locator('[data-prediction="out"]').click();
   await startAndFinish(page);
   await expect(page.locator("#result-heading")).toHaveText(
-    "Hypertonic solution",
+    "Hypertonic solution (solute concentration > inside the cell)",
   );
   await expect(page.locator("#conclusion")).toContainText("plasmolysis");
   await expect(page.locator("#conclusion .key-point")).toHaveText([
@@ -105,7 +105,9 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   const finalVolume = await page.locator("#after-volume").textContent();
   await page.locator("#language-button").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-Hant");
-  await expect(page.locator("#result-heading")).toHaveText("高滲溶液");
+  await expect(page.locator("#result-heading")).toHaveText(
+    "高滲溶液（指溶質濃度＞細胞內部）",
+  );
   await expect(page.locator("#conclusion")).toContainText("質壁分離");
   await expect(page.locator("#conclusion .key-point")).toHaveText([
     "淨",
@@ -122,7 +124,9 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#before-volume")).toHaveText(finalVolume);
   await expect(page.locator("#concentration")).toHaveValue("0");
   await expect(page.locator("#result-card")).toBeVisible();
-  await expect(page.locator("#result-heading")).toHaveText("低滲溶液");
+  await expect(page.locator("#result-heading")).toHaveText(
+    "低滲溶液（指溶質濃度＜細胞內部）",
+  );
   await expect(page.locator("#conclusion")).toContainText("硬脹");
   await expect(page.locator("#conclusion .key-point")).toHaveText([
     "淨",
@@ -286,7 +290,7 @@ test("Both cells remain unchanged in an isotonic solution", async ({
     await page.locator('[data-preset="equal"]').click();
     await startAndFinish(page);
     await expect(page.locator("#result-heading")).toHaveText(
-      "Isotonic solution",
+      "Isotonic solution (solute concentration = inside the cell)",
     );
     await expect(page.locator("#conclusion")).toContainText(
       "both directions at equal rates",
@@ -350,13 +354,36 @@ test("Mobile layout fits the screen, and the science guide is keyboard accessibl
   await expect(page.locator("#guide-dialog")).toBeVisible();
   await expect(page.locator("#guide-dialog")).toContainText("差異透性膜");
   await expect(page.locator("#guide-dialog")).toContainText("細胞壁具全透性");
+  for (const definition of [
+    "低滲溶液（指溶質濃度＜細胞內部）",
+    "等滲溶液（指溶質濃度＝細胞內部）",
+    "高滲溶液（指溶質濃度＞細胞內部）",
+  ]) {
+    await expect(page.locator("#guide-dialog")).toContainText(definition);
+  }
+  await expect(page.locator(".guide-equation")).toHaveText(
+    "Ψ ≈ −72.4 × 蔗糖濃度（%）kPa",
+  );
+  await expect(page.locator("#guide-dialog")).toContainText(
+    "濃度越高，水勢越低",
+  );
   await expect(page.locator("#guide-dialog details")).toHaveCount(0);
   await expect(page.locator("#guide-dialog")).not.toContainText("開始探索");
   await page.keyboard.press("Escape");
   await expect(page.locator("#guide-dialog")).toBeHidden();
   await page.locator('[data-preset="equal"]').click();
-  await startAndFinish(page);
-  await expect(page.locator("#result-heading")).toHaveText("等滲溶液");
+  await page.locator("#start-button").click();
+  await expect
+    .poll(() =>
+      page
+        .locator("#cell-observation")
+        .evaluate((el) => Math.abs(el.getBoundingClientRect().top - 16)),
+    )
+    .toBeLessThan(2);
+  await expect(page.locator("#result-card")).toBeVisible();
+  await expect(page.locator("#result-heading")).toHaveText(
+    "等滲溶液（指溶質濃度＝細胞內部）",
+  );
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -437,4 +464,133 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   );
   expect(later.quadrants.in.every((n) => n > 0)).toBeTruthy();
   expect(later.quadrants.out.every((n) => n > 0)).toBeTruthy();
+});
+
+test("Canvas labels stay within cytoplasm, water dots keep one size and both leaks are pink", async ({
+  page,
+}) => {
+  const issues = await page.evaluate(async () => {
+    const { drawChamber, getStructureSnapshot, getParticleSnapshot } =
+      await import("/js/renderer.js");
+    const { cellGeometry, containsPoint } = await import("/js/geometry.js");
+    const { insideOrganelle } = await import("/js/cell-details.js");
+    const { createTrial } = await import("/js/model.js");
+    const { translations } = await import("/js/i18n.js");
+    const { drawRupturedCell } = await import("/js/rupture.js");
+    const issues = [],
+      originalLanguage = document.documentElement.lang;
+    for (const language of ["en", "zh"])
+      for (const width of [160, 360, 510])
+        for (const cell of ["plant", "animal"])
+          for (const volume of cell === "plant"
+            ? [0.58, 0.75, 1, 1.02, 1.1455, 1.2072]
+            : [0.58, 1, 1.5]) {
+            document.documentElement.lang = language;
+            const canvas = document.createElement("canvas");
+            canvas.style.cssText = `width:${width}px;height:320px`;
+            document.body.append(canvas);
+            const trial = {
+              ...createTrial(cell, volume < 1 ? 20 : 0),
+              volume,
+              status: "running",
+            };
+            const options = { t: (key) => translations[language][key] };
+            drawChamber(canvas, trial, options);
+            const ctx = canvas.getContext("2d"),
+              originalArc = ctx.arc,
+              arcs = [];
+            ctx.arc = function (...args) {
+              arcs.push(args);
+              return originalArc.apply(this, args);
+            };
+            drawChamber(canvas, trial, { ...options, time: 0.1 });
+            ctx.arc = originalArc;
+            const geometry = cellGeometry(width, 320, trial),
+              box = getStructureSnapshot(canvas).potentialLabels.cell;
+            const state = { language, width, cell, volume };
+            if (!box) issues.push({ ...state, problem: "Missing label" });
+            else {
+              const structures = [
+                geometry.vacuole,
+                geometry.nucleus,
+                ...(geometry.chloroplasts ?? []),
+              ].filter(Boolean);
+              let overlap = false;
+              for (
+                let x = box.x - 0.5;
+                x <= box.x + box.width + 0.5 && !overlap;
+                x += 1
+              )
+                for (
+                  let y = box.y - 0.5;
+                  y <= box.y + box.height + 0.5;
+                  y += 1
+                ) {
+                  if (
+                    !containsPoint(geometry.outline, x, y) ||
+                    structures.some((o) => insideOrganelle(o, x, y))
+                  ) {
+                    overlap = true;
+                    break;
+                  }
+                }
+              if (overlap)
+                issues.push({
+                  ...state,
+                  problem: "Label touches membrane or organelle",
+                });
+            }
+            for (const water of getParticleSnapshot(canvas).water) {
+              const rendered = arcs.find(
+                ([x, y]) =>
+                  Math.abs(x - water.x) < 1e-6 && Math.abs(y - water.y) < 1e-6,
+              );
+              if (!rendered || rendered[2] !== 2.5) {
+                issues.push({ ...state, problem: "Water dot changed size" });
+                break;
+              }
+            }
+            canvas.remove();
+          }
+    document.documentElement.lang = originalLanguage;
+    const canvas = document.createElement("canvas");
+    canvas.width = 360;
+    canvas.height = 320;
+    const ctx = canvas.getContext("2d"),
+      geometry = cellGeometry(360, 320, { cell: "animal", volume: 1.6 });
+    for (const progress of [0.25, 0.5, 1]) {
+      ctx.clearRect(0, 0, 360, 320);
+      drawRupturedCell(ctx, geometry, progress);
+      for (const angle of [3.84, 0.7])
+        for (const scale of progress === 1
+          ? [0.85, 0.95, 1, 1.08]
+          : [0.85, 0.95, 1]) {
+          const dx = Math.cos(angle) * geometry.rx * scale,
+            dy = Math.sin(angle) * geometry.ry * scale;
+          const x =
+            geometry.cx +
+            dx * Math.cos(geometry.rotation) -
+            dy * Math.sin(geometry.rotation);
+          const y =
+            geometry.cy +
+            dx * Math.sin(geometry.rotation) +
+            dy * Math.cos(geometry.rotation);
+          const [r, g, b, alpha] = ctx.getImageData(
+            Math.round(x),
+            Math.round(y),
+            1,
+            1,
+          ).data;
+          if (alpha < 200 || r <= g || b <= g)
+            issues.push({
+              progress,
+              angle,
+              scale,
+              problem: "Leak is not filled pink",
+            });
+        }
+    }
+    return issues;
+  });
+  expect(issues).toEqual([]);
 });

@@ -18,10 +18,10 @@ export function drawRupturedCell(ctx, geometry, progress) {
       else ctx.lineTo(p.x, p.y);
     }
   };
-  const tear = (site) => {
+  const tear = (site, overlap = 0) => {
     for (let i = 1; i <= 7; i++) {
       const angle = site.angle - site.halfGap + (site.halfGap * 2 * i) / 7;
-      const inset = i === 7 ? 0 : (i % 2 ? 0.09 : 0.24) * opening;
+      const inset = i === 7 ? 0 : (i % 2 ? 0.09 : 0.24) * opening + overlap;
       const p = point(angle, 1 - inset);
       ctx.lineTo(p.x, p.y);
     }
@@ -88,6 +88,18 @@ export function drawRupturedCell(ctx, geometry, progress) {
     });
     if (release > 0) {
       ctx.fillStyle = "#f5c8df";
+      // Fill the whole opening and join it to the spray. The membrane remains
+      // interrupted at the two lips, but there is no empty gap in the cytoplasm.
+      const firstLip = point(site.angle - site.halfGap);
+      const firstNeck = jetPoint(length * 0.35, -width * 0.7);
+      const lastNeck = jetPoint(length * 0.35, width * 0.7);
+      ctx.beginPath();
+      ctx.moveTo(firstLip.x, firstLip.y);
+      tear(site, 0.025 * opening);
+      ctx.lineTo(lastNeck.x, lastNeck.y);
+      ctx.lineTo(firstNeck.x, firstNeck.y);
+      ctx.closePath();
+      ctx.fill();
       // Connected, lobed sprays grow out of each hole instead of appearing as
       // detached membrane halves or a gap running through the cell centre.
       ctx.beginPath();

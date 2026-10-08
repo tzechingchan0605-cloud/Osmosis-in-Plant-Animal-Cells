@@ -2,14 +2,19 @@
 // sucrose conversion used in the core lab. All water potentials here are kPa.
 export const SALINE_PSI = -794;
 export const EXTENSION_CELLS = { A: -794, B: -700 };
+// Example starting values implement the three student-proposed relationships.
+export const HYPOTHESIS_PSI = { higher: -700, equal: SALINE_PSI, lower: -900 };
 export function extensionDirection(initialPsi) {
   if (Math.abs(initialPsi - SALINE_PSI) < 1e-10) return "none";
   return initialPsi < SALINE_PSI ? "in" : "out";
 }
-export function createExtensionCell(name) {
+export function createExtensionCell(name, relation) {
   if (!(name in EXTENSION_CELLS))
     throw new RangeError("Unknown extension cell");
-  const initialPsi = EXTENSION_CELLS[name];
+  if (relation !== undefined && !Object.hasOwn(HYPOTHESIS_PSI, relation))
+    throw new RangeError("Choose a valid water-potential relationship");
+  const initialPsi =
+    relation === undefined ? EXTENSION_CELLS[name] : HYPOTHESIS_PSI[relation];
   return {
     name,
     initialPsi,

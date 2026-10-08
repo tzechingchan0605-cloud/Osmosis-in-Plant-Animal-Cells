@@ -281,7 +281,7 @@ function renderConclusion() {
   const paused = state.status === "paused";
   const feature = outcome(state);
   $("#result-card").className = "result-card " + state.tone;
-  $("#result-heading").textContent = t(state.tone);
+  $("#result-heading").textContent = t(state.tone + "Definition");
   paintSymbol(
     $("#result-icon"),
     state.tone === "hypo" ? "in" : state.tone === "hyper" ? "out" : "both",
@@ -420,6 +420,14 @@ $$("[data-prediction]").forEach((button) =>
     renderUI();
   }),
 );
+function scrollToObservation() {
+  $("#cell-observation").scrollIntoView({
+    behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : "smooth",
+    block: "start",
+  });
+}
 $("#start-button").addEventListener("click", () => {
   if (errorKey) return;
   if (state.status === "running") state.status = "paused";
@@ -433,6 +441,7 @@ $("#start-button").addEventListener("click", () => {
     state.status = "running";
   }
   renderUI();
+  if (state.status === "running") scrollToObservation();
 });
 $("#reset-button").addEventListener("click", () => prepareTrial());
 $("#recovery-button").addEventListener("click", () => {
@@ -449,6 +458,7 @@ $("#recovery-button").addEventListener("click", () => {
   before = { ...state, status: "ready" };
   syncInputs();
   renderUI();
+  scrollToObservation();
 });
 $("#clear-trials").addEventListener("click", () => {
   histories = [];

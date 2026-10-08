@@ -929,8 +929,38 @@ dialog h2 {
 .guide-points {
   margin: 20px 0;
 }
+#cell-observation {
+  scroll-margin-top: 16px;
+}
+.hypothesis-model-note {
+  padding: 0 24px;
+}
+.photo-comparison {
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.photo-comparison p {
+  margin-top: 8px;
+}
+.photo-comparison [data-matches-photo="true"] {
+  color: #248146;
+}
+.photo-comparison [data-matches-photo="false"] {
+  color: #b32b2b;
+}
 .guide-points h3 {
   font-size: 13px;
+  margin-top: 20px;
+}
+.guide-equation {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 7px;
+  background: #eef5e5;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .guide-points p,
 .teacher-notes p {
@@ -1405,7 +1435,7 @@ summary {
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin: 0 0 24px;
 }

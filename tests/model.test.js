@@ -202,3 +202,27 @@ test("Extension gradient ordering holds for kPa and is separate from sucrose con
   assert.equal(extensionDirection(-700), "out");
   assert.notEqual(concentrationToPotential(0.9), SALINE_PSI);
 });
+
+test("Each student's hypothesis controls either RBC's water movement and equilibrium volume", () => {
+  for (const name of ["A", "B"])
+    for (const [relation, psi, direction] of [
+      ["higher", -700, "out"],
+      ["equal", -794, "none"],
+      ["lower", -900, "in"],
+    ]) {
+      let cell = { ...createExtensionCell(name, relation), status: "running" };
+      assert.equal(cell.initialPsi, psi);
+      assert.equal(cell.direction, direction);
+      for (let i = 0; i < 1500 && cell.status === "running"; i++)
+        cell = advanceExtensionCell(cell, 1 / 60);
+      assert.equal(cell.status, "complete");
+      assert.ok(Math.abs(cell.volume - psi / SALINE_PSI) < 1e-10);
+      assert.ok(Math.abs(extensionPotential(cell) - SALINE_PSI) < 1e-10);
+      assert.equal(
+        Math.sign(cell.volume - 1),
+        relation === "higher" ? -1 : relation === "lower" ? 1 : 0,
+      );
+    }
+  assert.throws(() => createExtensionCell("A", ""), RangeError);
+  assert.throws(() => createExtensionCell("B", "constructor"), RangeError);
+});

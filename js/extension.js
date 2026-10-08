@@ -33,25 +33,63 @@ export function setupExtension({ t, returnToLab }) {
         ? "+" + change.toFixed(2)
         : change.toFixed(2).replace("-", "−");
   };
+  const hypothesisReady = () =>
+    Boolean($("#compare-psi-a").value && $("#compare-psi-b").value);
+  const cellObservation = (current) =>
+    t(
+      current.direction === "none"
+        ? "unchanged"
+        : current.direction === "in"
+          ? "slightSwelling"
+          : "shrinkingObservation",
+      { change: Math.abs((current.volume - 1) * 100).toFixed(2) },
+    );
+  function prepareHypothesis() {
+    a = createExtensionCell("A", $("#compare-psi-a").value || "equal");
+    other = createExtensionCell("B", $("#compare-psi-b").value || "equal");
+    results = {};
+    finished = false;
+    testStarted = false;
+    paused = false;
+    animationTime = 0;
+    particleEpoch++;
+    render();
+  }
 
   function goTo(number) {
-    if (step === 3 && number !== 3 && testStarted && !finished) paused = true;
+    if (step === 2 && number !== 2 && testStarted && !finished) paused = true;
     step = number;
     visitedSteps.add(number);
     render();
   }
   function startTest() {
+    if (!hypothesisReady()) {
+      goTo(1);
+      return;
+    }
     particleEpoch++;
-    a = { ...createExtensionCell("A"), status: "running" };
-    other = { ...createExtensionCell("B"), status: "running" };
+    a = {
+      ...createExtensionCell("A", $("#compare-psi-a").value),
+      status: "running",
+    };
+    other = {
+      ...createExtensionCell("B", $("#compare-psi-b").value),
+      status: "running",
+    };
     paused = false;
     finished = false;
     testStarted = true;
     animationTime = 0;
-    goTo(3);
+    goTo(2);
+    $("#extension-step-2").scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
   }
   function render() {
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 3; i++) {
       $(`#extension-step-${i}`).hidden = step !== i;
       const item = root.querySelector(`[data-step="${i}"]`);
       item.classList.toggle("completed", visitedSteps.has(i) && i !== step);
@@ -63,6 +101,9 @@ export function setupExtension({ t, returnToLab }) {
     }
     $("#micrograph-image").setAttribute("aria-label", t("micrographAlt"));
     $(".extension-steps").setAttribute("aria-label", t("extensionProgress"));
+    $("#extension-next-1").disabled = !hypothesisReady();
+    $("#extension-hypothesis-required").hidden = hypothesisReady();
+    $("#extension-test-card").hidden = !hypothesisReady();
     for (const name of ["a", "b"]) {
       const select = $(`#compare-psi-${name}`);
       for (const [relation, key] of [
@@ -75,8 +116,13 @@ export function setupExtension({ t, returnToLab }) {
     }
     $("#extension-test-heading").textContent = t("abTestTitle");
     $("#extension-cell-other").textContent = t("cellB");
-    $("#extension-initial-other").textContent =
-      `Ψ₀ = ${other.initialPsi.toFixed(0).replace("-", "−")} kPa`;
+    for (const [name, current] of [
+      ["a", a],
+      ["other", other],
+    ]) {
+      $(`#extension-initial-${name}`).textContent =
+        `Ψ₀ = ${current.initialPsi.toFixed(0).replace("-", "−")} kPa ${t("presetValue")}`;
+    }
     $("#extension-pause").textContent = t(
       !testStarted
         ? "testHypothesis"
@@ -108,28 +154,55 @@ export function setupExtension({ t, returnToLab }) {
       );
     }
     if (finished) {
-      $("#extension-result-title").textContent = t("bResultTitle");
-      const points = [
-        ["aResult"],
-        [
-          "bResult",
-          {
-            change: Math.abs((other.volume - 1) * 100).toFixed(2),
-          },
-        ],
-        ["finalEquilibriumNote"],
-      ];
+      $("#extension-result-title").textContent = t("hypothesisResultsTitle");
+      const points = [a, other].map((current) => [
+        current.direction === "none"
+          ? "hypothesisEqualResult"
+          : current.direction === "out"
+            ? "hypothesisHigherResult"
+            : "hypothesisLowerResult",
+        {
+          cell: t("cell" + current.name),
+          psi: current.initialPsi.toFixed(0).replace("-", "−"),
+          change: Math.abs((current.volume - 1) * 100).toFixed(2),
+        },
+      ]);
+      points.push(["finalEquilibriumNote"]);
       $("#extension-result-points").replaceChildren(
         ...points.map(([key, parameters]) =>
           conclusionPoint(key, t, parameters),
         ),
       );
+      renderPhotoComparison($("#extension-photo-comparison"), [a, other]);
     }
-    if (step === 4) renderSummary();
+    if (step === 3) renderSummary();
     if (feedbackShown) checkExplanation();
+  }
+  function renderPhotoComparison(container, cells) {
+    container.replaceChildren(
+      ...cells.map((current) => {
+        const matched =
+          current.direction === (current.name === "A" ? "none" : "out");
+        const line = document.createElement("p");
+        line.dataset.matchesPhoto = String(matched);
+        line.textContent = t("photoComparison", {
+          cell: t("cell" + current.name),
+          observed: t(current.name === "A" ? "unchanged" : "wrinkled"),
+          simulated: cellObservation(current),
+          assessment: t(
+            matched ? "hypothesisMatchesPhoto" : "hypothesisDiffersPhoto",
+          ),
+        });
+        return line;
+      }),
+    );
   }
   function renderSummary() {
     $("#extension-review-note").hidden = !!results.B;
+    renderPhotoComparison(
+      $("#extension-summary-comparison"),
+      ["A", "B"].filter((name) => results[name]).map((name) => results[name]),
+    );
     $("#extension-summary-body").replaceChildren(
       ...["A", "B"]
         .filter((name) => results[name])
@@ -147,14 +220,7 @@ export function setupExtension({ t, returnToLab }) {
                   : "hyper",
             ),
             t(current.direction),
-            t(
-              current.direction === "none"
-                ? "unchanged"
-                : current.direction === "in"
-                  ? "slightSwelling"
-                  : "shrinkingObservation",
-              { change: Math.abs((current.volume - 1) * 100).toFixed(2) },
-            ),
+            cellObservation(current),
           ];
           row.replaceChildren(
             ...values.map((text) =>
@@ -204,8 +270,6 @@ export function setupExtension({ t, returnToLab }) {
     for (const selector of [
       "#compare-psi-a",
       "#compare-psi-b",
-      "#predict-a",
-      "#predict-b",
       "#infer-a",
       "#infer-b",
     ])
@@ -213,9 +277,13 @@ export function setupExtension({ t, returnToLab }) {
     $("#extension-final-feedback").hidden = true;
     render();
   }
-  $("#extension-next-1").addEventListener("click", () => goTo(2));
-  $("#extension-start-test").addEventListener("click", startTest);
-  $("#extension-to-explain").addEventListener("click", () => goTo(4));
+  $("#extension-next-1").addEventListener("click", startTest);
+  for (const name of ["a", "b"])
+    $("#compare-psi-" + name).addEventListener("change", prepareHypothesis);
+  $("#extension-revise-hypothesis").addEventListener("click", () => goTo(1));
+  $("#extension-revise-summary").addEventListener("click", () => goTo(1));
+  $("#extension-to-hypothesis").addEventListener("click", () => goTo(1));
+  $("#extension-to-explain").addEventListener("click", () => goTo(3));
   $("#extension-check").addEventListener("click", checkExplanation);
   $("#extension-reset").addEventListener("click", reset);
   $("#extension-return").addEventListener("click", returnToLab);
@@ -236,7 +304,7 @@ export function setupExtension({ t, returnToLab }) {
   return {
     updateLanguage: render,
     tick(dt, time) {
-      if (root.hidden || step !== 3) return;
+      if (root.hidden || step !== 2) return;
       if (!paused) animationTime += dt * SIMULATION_SPEED;
       if (testStarted && !paused && !finished) {
         const advance = dt * SIMULATION_SPEED;

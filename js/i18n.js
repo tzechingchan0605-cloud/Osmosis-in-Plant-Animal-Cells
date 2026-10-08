@@ -82,6 +82,11 @@ export const translations = {
     definition:
       "Osmosis is the net movement of water molecules from a region of higher water potential to a region of lower water potential across a differentially permeable membrane.",
     remember: "Things to remember",
+    guideSolutionTypes: "Compare the solution with the cell",
+    guideConcentration: "Concentration and water potential",
+    guideEquation: "Ψ ≈ −72.4 × sucrose concentration (%) kPa",
+    guideEquationExplanation:
+      "For sucrose solutions at 25°C, this ideal-solution approximation uses % w/v (grams per 100 mL). A higher concentration gives a lower, more negative water potential; a lower concentration gives a higher water potential, nearer 0. This sucrose equation does not apply to the saline solution in the extension.",
     guideWater:
       "Pure water has a water potential of 0. Adding sucrose makes it more negative. −200 kPa is higher than −750 kPa.",
     guideBoth:
@@ -101,6 +106,11 @@ export const translations = {
     hypo: "Hypotonic solution",
     iso: "Isotonic solution",
     hyper: "Hypertonic solution",
+    hypoDefinition:
+      "Hypotonic solution (solute concentration < inside the cell)",
+    isoDefinition: "Isotonic solution (solute concentration = inside the cell)",
+    hyperDefinition:
+      "Hypertonic solution (solute concentration > inside the cell)",
     hypoRelation:
       "The solution initially had a higher water potential than the cell ({solution} kPa > {cell} kPa).",
     isoRelation:
@@ -174,10 +184,9 @@ export const translations = {
     extensionSubtitle:
       "Look beyond the usual rule and test a hypothesis about individual red blood cells.",
     reviewTestsFirst:
-      "Complete the tests in stage 03 to add their observations here. You can review any stage without losing your answers.",
+      "Complete the tests in stage 02 to add their observations here. You can review any stage without losing your answers.",
     restartActivity: "Restart activity",
-    observeStep: "Observe",
-    hypothesiseStep: "Hypothesise",
+    observeHypothesisStep: "Observe and hypothesise",
     testStep: "Test",
     explainStep: "Explain",
     regularRbc: "RBC with regular shape",
@@ -193,24 +202,19 @@ export const translations = {
     salineSolutionWord: "Sodium chloride solution",
     photoLimit:
       "A picture alone cannot confirm a cell’s starting water potential. We need a controlled test.",
-    makeHypothesis: "Build a hypothesis",
-    hypothesisLabel: "A TESTABLE HYPOTHESIS",
-    choosePrediction: "Choose a prediction",
     chooseAnswer: "Please select",
     higherThanSaline: "Higher than the saline solution",
     equalToSaline: "Equal to the saline solution",
     lowerThanSaline: "Lower than the saline solution",
-    comparePotentials: "Compare the starting water potentials.",
     sharedSaline: "Same 0.9% saline solution",
     cellA: "Cell A",
     cellB: "Cell B",
-    predictNet: "Predicted net water movement",
-    testHypothesis: "Test the predictions",
+    testHypothesis: "Test the hypothesis",
     sharedBathLabel: "ONE SHARED SALINE SOLUTION",
     saltParticles: "Dissolved salt (schematic)",
     explainObservation: "Explain the observation",
     evidenceConclusion: "FROM EVIDENCE TO AN EXPLANATION",
-    whatLearned: "What do the tests tell us?",
+    whatLearned: "Do your test results match the microscope photo?",
     initialWaterPotential: "Initial Ψ (kPa)",
     solutionRelative: "Solution relative to this cell",
     inferA: "A cell confirmed to remain unchanged most likely began with…",
@@ -219,7 +223,7 @@ export const translations = {
     inferenceLimit:
       "Under our assumptions, the unchanged cell began near −794 kPa; a cell that shrank began above −794 kPa. The image cannot tell us its exact initial value, and real images can also be affected by preparation artefacts.",
     backToLab: "← Back to the osmosis lab",
-    abTestTitle: "Cell A and cell B: equal or higher initial Ψ",
+    abTestTitle: "Test your hypothesis for cells A and B",
     bResultTitle: "Cell B lost water and shrank.",
     aResult:
       "A: −794 kPa equals the saline solution. Water moved both ways equally; shape and volume stayed unchanged.",
@@ -227,6 +231,26 @@ export const translations = {
       "B: −700 kPa is HIGHER than −794 kPa. Water moved out of B overall, and its volume decreased by {change}%. This is the direction expected for a cell that shrinks.",
     finalEquilibriumNote:
       "At the end, both cells reach −794 kPa. Water still crosses in both directions, with no net movement. Each cell exchanges water with the surrounding saline.",
+    hypothesisResultsTitle: "Simulation results for your hypothesis",
+    chooseHypothesesFirst:
+      "Choose the initial water-potential relationship for both cells in stage 01 before testing.",
+    returnToHypothesis: "Return to observation and hypothesis",
+    reviseHypothesis: "Revise your hypothesis and test again",
+    explainPhotoCells:
+      "Use the comparisons to explain the cells in the microscope photo.",
+    hypothesisModelNote:
+      "Example starting potentials follow your hypothesis: > −700 kPa, = −794 kPa, < −900 kPa. The saline stays at −794 kPa.",
+    photoComparison:
+      "{cell}: photo — {observed}; simulation — {simulated}. {assessment}",
+    hypothesisMatchesPhoto: "The results match and support this hypothesis.",
+    hypothesisDiffersPhoto:
+      "The results differ. Revise this hypothesis and test again.",
+    hypothesisEqualResult:
+      "{cell}: initial Ψ {psi} kPa equals the saline solution. Water moved in both directions at equal rates, with no net movement; shape and volume stayed unchanged.",
+    hypothesisHigherResult:
+      "{cell}: initial Ψ {psi} kPa is higher than the saline solution. Water made a net movement out of the cell; the cell shrank and its volume decreased by {change}%.",
+    hypothesisLowerResult:
+      "{cell}: initial Ψ {psi} kPa is lower than the saline solution. Water made a net movement into the cell; the cell swelled and its volume increased by {change}%.",
     extensionPaused: "Paused",
     pauseShort: "Pause",
     resumeShort: "Resume",
@@ -337,6 +361,11 @@ export const translations = {
     definition:
       "滲透是水分子從水勢較高的區域，穿過差異透性膜，向水勢較低的區域淨移動。",
     remember: "記住這些概念",
+    guideSolutionTypes: "比較溶液與細胞內部",
+    guideConcentration: "濃度與水勢的關係",
+    guideEquation: "Ψ ≈ −72.4 × 蔗糖濃度（%）kPa",
+    guideEquationExplanation:
+      "此式為 25°C 蔗糖溶液的理想溶液近似換算，濃度為質量／體積百分比（每 100 mL 溶液所含的蔗糖克數）。濃度越高，水勢越低（數值越負）；濃度越低，水勢越高（越接近 0）。此蔗糖換算式不適用於延伸學習的氯化鈉溶液。",
     guideWater:
       "純水的水勢為 0。加入蔗糖會使水勢降低，變成負值。−200 kPa 的水勢比 −750 kPa 高。",
     guideBoth:
@@ -356,6 +385,9 @@ export const translations = {
     hypo: "低滲溶液",
     iso: "等滲溶液",
     hyper: "高滲溶液",
+    hypoDefinition: "低滲溶液（指溶質濃度＜細胞內部）",
+    isoDefinition: "等滲溶液（指溶質濃度＝細胞內部）",
+    hyperDefinition: "高滲溶液（指溶質濃度＞細胞內部）",
     hypoRelation: "溶液的起始水勢較細胞高（{solution} kPa > {cell} kPa）。",
     isoRelation: "溶液與細胞的起始水勢相同（約 {cell} kPa）。",
     hyperRelation: "溶液的起始水勢較細胞低（{solution} kPa < {cell} kPa）。",
@@ -421,10 +453,9 @@ export const translations = {
     extensionHeading: "相同溶液，不同細胞？",
     extensionSubtitle: "進一步探索個別紅血細胞的差異，並測試一個假說。",
     reviewTestsFirst:
-      "完成第 03 階段的測試後，觀察結果會加入此處。你可隨時重溫各階段，答案會保留。",
+      "完成第 02 階段的測試後，觀察結果會加入此處。你可隨時重溫各階段，答案會保留。",
     restartActivity: "重新開始活動",
-    observeStep: "觀察",
-    hypothesiseStep: "提出假說",
+    observeHypothesisStep: "觀察及提出假說",
     testStep: "測試",
     explainStep: "解釋",
     regularRbc: "形狀正常的紅血細胞",
@@ -438,24 +469,19 @@ export const translations = {
     initialComparisonB: "起始水勢：細胞B",
     salineSolutionWord: "氯化鈉溶液",
     photoLimit: "單憑圖像不能確認細胞的起始水勢，我們需要受控測試。",
-    makeHypothesis: "建立假說",
-    hypothesisLabel: "可測試的假說",
-    choosePrediction: "選擇你的預測",
     chooseAnswer: "請選擇",
     higherThanSaline: "比氯化鈉溶液高",
     equalToSaline: "與氯化鈉溶液相同",
     lowerThanSaline: "比氯化鈉溶液低",
-    comparePotentials: "比較細胞的起始水勢。",
     sharedSaline: "同一 0.9% 氯化鈉溶液",
     cellA: "細胞 A",
     cellB: "細胞 B",
-    predictNet: "預測水分子的淨移動方向",
-    testHypothesis: "測試你的預測",
+    testHypothesis: "測試假說",
     sharedBathLabel: "共用同一氯化鈉溶液",
     saltParticles: "已溶解的鹽（示意）",
     explainObservation: "解釋觀察結果",
     evidenceConclusion: "從證據得出解釋",
-    whatLearned: "測試結果告訴我們甚麼？",
+    whatLearned: "你的測試結果與顯微照片下的結果相同嗎？",
     initialWaterPotential: "起始水勢（kPa）",
     solutionRelative: "溶液相對此細胞的滲性",
     inferA: "已確認形狀和體積不變的細胞，起始水勢最可能……",
@@ -464,7 +490,7 @@ export const translations = {
     inferenceLimit:
       "在本活動的假設下，不變的細胞起始水勢接近 −794 kPa；萎縮的細胞則高於 −794 kPa。圖像不能告訴我們其確切起始水勢，真實顯微照片也可能受製片過程影響。",
     backToLab: "← 返回滲透實驗",
-    abTestTitle: "細胞 A 與 B：相同或較高的起始水勢",
+    abTestTitle: "測試你對細胞 A、B 的假說",
     bResultTitle: "細胞 B 失水並萎縮。",
     aResult:
       "A：−794 kPa 與溶液水勢相同。水向兩個方向移動的速率相同，形狀和體積維持不變。",
@@ -472,6 +498,24 @@ export const translations = {
       "B：−700 kPa 比 −794 kPa 高。水分子淨移動離開 B，體積減少 {change}%。這符合細胞萎縮時預期的淨移動方向。",
     finalEquilibriumNote:
       "最後兩個細胞的水勢均達到 −794 kPa。水仍向兩個方向穿膜移動，但沒有淨移動。各細胞均與周圍氯化鈉溶液交換水份。",
+    hypothesisResultsTitle: "你的假說：模擬結果",
+    chooseHypothesesFirst:
+      "請先在第 01 階段選擇細胞 A、B 的起始水勢關係，再測試假說。",
+    returnToHypothesis: "返回觀察及提出假說",
+    reviseHypothesis: "修改假說，再次測試",
+    explainPhotoCells: "利用比較結果，解釋顯微照片中的細胞。",
+    hypothesisModelNote:
+      "按你的假說設定示例起始水勢：> −700 kPa；= −794 kPa；< −900 kPa。氯化鈉溶液水勢維持 −794 kPa。",
+    photoComparison:
+      "{cell}：照片顯示{observed}；模擬結果為{simulated}。{assessment}",
+    hypothesisMatchesPhoto: "結果與照片一致，支持此假說。",
+    hypothesisDiffersPhoto: "結果與照片不符，請修改此假說並再次測試。",
+    hypothesisEqualResult:
+      "{cell}：起始水勢 {psi} kPa 與氯化鈉溶液相同。水分子向兩個方向移動的速率相同，沒有淨移動，形狀和體積維持不變。",
+    hypothesisHigherResult:
+      "{cell}：起始水勢 {psi} kPa 較氯化鈉溶液高。水分子藉滲透淨移動離開細胞，細胞萎縮，體積減少 {change}%。",
+    hypothesisLowerResult:
+      "{cell}：起始水勢 {psi} kPa 較氯化鈉溶液低。水分子藉滲透淨移動進入細胞，細胞膨脹，體積增加 {change}%。",
     extensionPaused: "已暫停",
     pauseShort: "暫停",
     resumeShort: "繼續",

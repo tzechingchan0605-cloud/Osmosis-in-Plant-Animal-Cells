@@ -10,28 +10,29 @@
     />
     <title>Osmosis Lab · 滲透實驗室</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20261008.3" />
+    <link rel="stylesheet" href="./styles.css?v=20261008.4" />
     <!-- Keep all module and stylesheet release queries in sync when publishing. -->
     <script type="importmap">
       {
         "imports": {
-          "./js/app.js": "./js/app.js?v=20261008.3",
-          "./js/cell-details.js": "./js/cell-details.js?v=20261008.3",
-          "./js/conclusion.js": "./js/conclusion.js?v=20261008.3",
-          "./js/extension-model.js": "./js/extension-model.js?v=20261008.3",
-          "./js/extension-view.js": "./js/extension-view.js?v=20261008.3",
-          "./js/extension.js": "./js/extension.js?v=20261008.3",
-          "./js/geometry.js": "./js/geometry.js?v=20261008.3",
-          "./js/i18n.js": "./js/i18n.js?v=20261008.3",
-          "./js/model.js": "./js/model.js?v=20261008.3",
-          "./js/particles.js": "./js/particles.js?v=20261008.3",
-          "./js/renderer.js": "./js/renderer.js?v=20261008.3",
-          "./js/rupture.js": "./js/rupture.js?v=20261008.3",
-          "./js/settings.js": "./js/settings.js?v=20261008.3"
+          "./js/app.js": "./js/app.js?v=20261008.4",
+          "./js/cell-details.js": "./js/cell-details.js?v=20261008.4",
+          "./js/conclusion.js": "./js/conclusion.js?v=20261008.4",
+          "./js/extension-model.js": "./js/extension-model.js?v=20261008.4",
+          "./js/extension-view.js": "./js/extension-view.js?v=20261008.4",
+          "./js/extension.js": "./js/extension.js?v=20261008.4",
+          "./js/geometry.js": "./js/geometry.js?v=20261008.4",
+          "./js/i18n.js": "./js/i18n.js?v=20261008.4",
+          "./js/model.js": "./js/model.js?v=20261008.4",
+          "./js/particles.js": "./js/particles.js?v=20261008.4",
+          "./js/potential-labels.js": "./js/potential-labels.js?v=20261008.4",
+          "./js/renderer.js": "./js/renderer.js?v=20261008.4",
+          "./js/rupture.js": "./js/rupture.js?v=20261008.4",
+          "./js/settings.js": "./js/settings.js?v=20261008.4"
         }
       }
     </script>
-    <script type="module" src="./js/app.js?v=20261008.3"></script>
+    <script type="module" src="./js/app.js?v=20261008.4"></script>
   </head>
   <body>
     <header class="site-header">
@@ -249,7 +250,7 @@
             class="observation-column"
             aria-label="Cell observation and results"
           >
-            <div class="observation-card">
+            <div class="observation-card" id="cell-observation">
               <div class="observation-header">
                 <div class="section-heading">
                   <span class="step-number">02</span>
@@ -467,6 +468,31 @@
         differentially permeable membrane.
       </p>
       <div class="guide-points">
+        <h3 data-i18n="guideSolutionTypes">
+          Compare the solution with the cell
+        </h3>
+        <p data-i18n="hypoDefinition">
+          Hypotonic solution (solute concentration &lt; inside the cell)
+        </p>
+        <p data-i18n="isoDefinition">
+          Isotonic solution (solute concentration = inside the cell)
+        </p>
+        <p data-i18n="hyperDefinition">
+          Hypertonic solution (solute concentration &gt; inside the cell)
+        </p>
+        <h3 data-i18n="guideConcentration">
+          Concentration and water potential
+        </h3>
+        <div class="guide-equation" data-i18n="guideEquation">
+          Ψ ≈ −72.4 × sucrose concentration (%) kPa
+        </div>
+        <p data-i18n="guideEquationExplanation">
+          For sucrose solutions at 25°C, this ideal-solution approximation uses
+          % w/v (grams per 100 mL). A higher concentration gives a lower, more
+          negative water potential; a lower concentration gives a higher water
+          potential, nearer 0. This sucrose equation does not apply to the
+          saline solution in the extension.
+        </p>
         <h3 data-i18n="remember">Things to remember</h3>
         <p data-i18n="guideWater">
           Pure water has a water potential of 0. Adding sucrose makes it more

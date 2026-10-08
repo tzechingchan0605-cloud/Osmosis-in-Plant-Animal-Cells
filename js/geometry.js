@@ -238,6 +238,18 @@ export function cellGeometry(width, height, trial) {
     ry: innerH * 0.4 * vacuoleScale,
   };
   const outline = sampleCommands(commands);
+  if (trial.volume >= 1) {
+    // Keep the starting upper cytoplasm depth available for a readable label
+    // as the vacuole expands. Its width and overall area still increase.
+    const topMembrane = boundaryAt({ ...geometry, outline }, -Math.PI / 2).y;
+    vacuole.ry = Math.min(
+      vacuole.ry,
+      vacuole.y -
+        topMembrane -
+        Math.max(16, innerH * 0.1) -
+        base * 0.055 * expansion,
+    );
+  }
   if (plasmolysis > 0) {
     const rightLimit = Math.min(
       ...Array.from({ length: 25 }, (_, i) =>
