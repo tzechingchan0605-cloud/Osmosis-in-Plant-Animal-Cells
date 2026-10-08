@@ -5,6 +5,7 @@ import {
   advanceExtensionCell,
 } from "./extension-model.js";
 import { drawChamber } from "./renderer.js";
+import { conclusionPoint } from "./conclusion.js";
 
 export function setupExtension({ t, returnToLab }) {
   const root = document.querySelector("#extension-study");
@@ -93,15 +94,18 @@ export function setupExtension({ t, returnToLab }) {
         otherName === "Y" ? "lowerResultTitle" : "higherResultTitle",
       );
       const points = [
-        t("xResult"),
-        t(otherName === "Y" ? "yResult" : "zResult", {
-          change: Math.abs((other.volume - 1) * 100).toFixed(2),
-        }),
-        t("finalEquilibriumNote"),
+        ["xResult"],
+        [
+          otherName === "Y" ? "yResult" : "zResult",
+          {
+            change: Math.abs((other.volume - 1) * 100).toFixed(2),
+          },
+        ],
+        ["finalEquilibriumNote"],
       ];
       $("#extension-result-points").replaceChildren(
-        ...points.map((text) =>
-          Object.assign(document.createElement("li"), { textContent: text }),
+        ...points.map(([key, parameters]) =>
+          conclusionPoint(key, t, parameters),
         ),
       );
       const px = $("#predict-x").value,

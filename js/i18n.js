@@ -106,16 +106,18 @@ export const translations = {
     hyperRelation:
       "The solution initially had a lower water potential than the cell ({solution} kPa < {cell} kPa).",
     hypoMovement:
-      "Water moved into the cell by osmosis. Water also moved out, but at a lower rate initially.",
+      "Water molecules made a net movement into the cell by osmosis: the outward rate was lower than the inward rate until the water potentials inside and outside the cell reached equilibrium.",
+    hypoBurstMovement:
+      "Water molecules made a net movement into the cell by osmosis, with a higher initial inward rate. The cell membrane then burst, releasing the cell contents.",
     hyperMovement:
-      "Water molecules moved out of the cell by osmosis overall: the inward rate was lower than the outward rate until the water potentials inside and outside the cell reached equilibrium.",
+      "Water molecules made a net movement out of the cell by osmosis: the inward rate was lower than the outward rate until the water potentials inside and outside the cell reached equilibrium.",
     isoMovement:
       "Water moved in both directions at equal rates. There was no net movement.",
     unchangedDescription: "The cell’s shape and volume remained unchanged.",
     turgidDescription:
       "The vacuole enlarged and the cell became turgid. The cell wall resisted further expansion; water still moves both ways at equilibrium.",
     plasmolysedDescription:
-      "The vacuole shrank. The cell membrane pulled away from the wall along the sides, retaining the four corner attachments shown in this diagram. This is plasmolysis; the cell became flaccid.",
+      "The vacuole shrank and the cell membrane pulled away from the wall along the sides. The cell underwent plasmolysis and became flaccid.",
     flaccidDescription:
       "The cell lost some water and became flaccid, without obvious plasmolysis in this trial.",
     wrinkledDescription: "The red blood cell shrank and became wrinkled.",
@@ -366,7 +368,10 @@ export const translations = {
     hypoRelation: "溶液的起始水勢較細胞高（{solution} kPa > {cell} kPa）。",
     isoRelation: "溶液與細胞的起始水勢相同（約 {cell} kPa）。",
     hyperRelation: "溶液的起始水勢較細胞低（{solution} kPa < {cell} kPa）。",
-    hypoMovement: "水藉滲透進入細胞。水也會離開細胞，但起初離開的速率較低。",
+    hypoMovement:
+      "水分子藉滲透淨移動進入細胞，即水分子離開細胞的速率較進入細胞的速率低，直至細胞內、外的水分達至平衡。",
+    hypoBurstMovement:
+      "水分子藉滲透淨移動進入細胞，起初水分子進入細胞的速率較離開細胞的速率高；細胞膜其後爆裂，內容物釋出。",
     hyperMovement:
       "水分子藉滲透淨移動離開細胞，即水分子進入細胞的速率較離開細胞的速率低，直至細胞內、外的水分達至平衡。",
     isoMovement: "水分子向兩個方向移動，速率相同，因此沒有淨移動。",
@@ -374,7 +379,7 @@ export const translations = {
     turgidDescription:
       "液泡脹大，細胞變得硬脹。細胞壁抵抗進一步膨脹；達到平衡時，水仍會向兩個方向移動。",
     plasmolysedDescription:
-      "液泡萎縮，細胞膜沿四邊與細胞壁分離；在此圖中，四角仍與細胞壁相連。細胞出現質壁分離，呈軟縮狀態。",
+      "液泡萎縮，細胞膜沿四邊與細胞壁分離，細胞出現質壁分離，呈軟縮狀態。",
     flaccidDescription:
       "細胞失去少量水，呈軟縮狀態，但本次實驗未出現明顯質壁分離。",
     wrinkledDescription: "紅血細胞萎縮，變得皺褶。",

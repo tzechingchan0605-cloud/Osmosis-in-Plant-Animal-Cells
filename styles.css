@@ -795,6 +795,10 @@ input[type="range"] {
   padding-left: 4px;
   margin-top: 4px;
 }
+.key-point {
+  color: #b32b2b;
+  font-weight: 650;
+}
 .prediction-feedback {
   font-size: 11px;
   border-top: 1px solid #cbdaba;

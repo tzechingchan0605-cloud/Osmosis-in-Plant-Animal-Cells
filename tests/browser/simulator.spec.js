@@ -58,6 +58,17 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
     "Hypertonic solution",
   );
   await expect(page.locator("#conclusion")).toContainText("plasmolysis");
+  await expect(page.locator("#conclusion .key-point")).toHaveText([
+    "net",
+    "out of the cell",
+    "equilibrium",
+    "plasmolysis",
+    "flaccid",
+  ]);
+  await expect(page.locator("#conclusion .key-point").first()).toHaveCSS(
+    "color",
+    "rgb(179, 43, 43)",
+  );
   await expect(page.locator("#prediction-feedback")).toContainText("matched");
   await expect(page.locator("#trials-body tr")).toHaveCount(1);
   const finalVolume = await page.locator("#after-volume").textContent();
@@ -65,6 +76,13 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-Hant");
   await expect(page.locator("#result-heading")).toHaveText("高滲溶液");
   await expect(page.locator("#conclusion")).toContainText("質壁分離");
+  await expect(page.locator("#conclusion .key-point")).toHaveText([
+    "淨",
+    "離開細胞",
+    "平衡",
+    "質壁分離",
+    "軟縮",
+  ]);
   await expect(page.locator("#conclusion")).toContainText(
     "水分子藉滲透淨移動離開細胞，即水分子進入細胞的速率較離開細胞的速率低，直至細胞內、外的水分達至平衡。",
   );
@@ -75,6 +93,13 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#result-card")).toBeVisible();
   await expect(page.locator("#result-heading")).toHaveText("低滲溶液");
   await expect(page.locator("#conclusion")).toContainText("硬脹");
+  await expect(page.locator("#conclusion .key-point")).toHaveText([
+    "淨",
+    "進入細胞",
+    "平衡",
+    "硬脹",
+    "平衡",
+  ]);
   await expect(page.locator("#trials-body tr")).toHaveCount(2);
   expect(
     parseFloat(await page.locator("#after-volume").textContent()),
@@ -92,6 +117,14 @@ test("Red blood cells show haemolysis in pure water and wrinkles in concentrated
   await page.locator('[data-preset="water"]').click();
   await startAndFinish(page);
   await expect(page.locator("#conclusion")).toContainText("haemolysis");
+  await expect(page.locator("#conclusion .key-point")).toHaveText([
+    "net",
+    "into the cell",
+    "swelled",
+    "burst",
+    "haemoglobin",
+    "haemolysis",
+  ]);
   await expect(page.locator("#status")).toHaveText("Cell membrane ruptured");
   await expect(page.locator("#recovery-button")).toBeHidden();
   await page.locator('[data-preset="strong"]').click();
@@ -99,6 +132,13 @@ test("Red blood cells show haemolysis in pure water and wrinkles in concentrated
   await expect(page.locator("#conclusion")).toContainText(
     "shrank and became wrinkled",
   );
+  await expect(page.locator("#conclusion .key-point")).toHaveText([
+    "net",
+    "out of the cell",
+    "equilibrium",
+    "shrank",
+    "wrinkled",
+  ]);
   await expect(page.locator("#trials-body tr")).toHaveCount(2);
 });
 
@@ -116,6 +156,11 @@ test("Both cells remain unchanged in an isotonic solution", async ({
       "both directions at equal rates",
     );
     await expect(page.locator("#after-volume")).toHaveText("1.00×");
+    await expect(page.locator("#conclusion .key-point")).toHaveText([
+      "equal rates",
+      "no net movement",
+      "remained unchanged",
+    ]);
   }
 });
 
@@ -184,6 +229,9 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
     .poll(async () => (await snapshot()).crossings.in)
     .toBeGreaterThan(2);
   const ready = await snapshot();
+  expect(ready.water).toHaveLength(54);
+  expect(ready.transfers.in).toBeLessThanOrEqual(2);
+  expect(ready.transfers.in).toBe(ready.transfers.out);
   expect(ready.inside).toBe(initial.inside);
   expect(ready.crossings.in).toBe(ready.crossings.out);
   expect(
@@ -202,7 +250,7 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   expect(await snapshot()).toEqual(paused);
   await page.locator("#start-button").click();
   await expect(page.locator("#result-card")).toBeVisible();
-  await expect.poll(async () => (await snapshot()).inside).toBe(10);
+  await expect.poll(async () => (await snapshot()).inside).toBe(7);
   const complete = await snapshot();
   expect(complete.water.map((p) => p.id)).toEqual(
     initial.water.map((p) => p.id),
@@ -213,6 +261,8 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
     .poll(async () => (await snapshot()).crossings.in)
     .toBeGreaterThan(complete.crossings.in + 3);
   const later = await snapshot();
+  expect(later.transfers.in).toBeLessThanOrEqual(2);
+  expect(later.transfers.in).toBe(later.transfers.out);
   expect(later.inside).toBe(complete.inside);
   expect(later.crossings.in - complete.crossings.in).toBe(
     later.crossings.out - complete.crossings.out,

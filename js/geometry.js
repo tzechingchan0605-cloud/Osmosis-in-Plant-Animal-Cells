@@ -81,6 +81,54 @@ function sampleCommands(commands) {
   return points;
 }
 
+function bowedRectangle(left, top, right, bottom, radius, sideInset, endInset) {
+  const cx = (left + right) / 2,
+    cy = (top + bottom) / 2;
+  const innerW = right - left,
+    innerH = bottom - top;
+  const point = (x, y) => ({ x, y });
+  const commands = [
+    { kind: "move", to: point(left + radius, top) },
+    {
+      kind: "cubic",
+      a: point(cx - innerW * 0.16, top + endInset),
+      b: point(cx + innerW * 0.16, top + endInset),
+      to: point(right - radius, top),
+    },
+    { kind: "quadratic", a: point(right, top), to: point(right, top + radius) },
+    {
+      kind: "cubic",
+      a: point(right - sideInset, cy - innerH * 0.16),
+      b: point(right - sideInset, cy + innerH * 0.16),
+      to: point(right, bottom - radius),
+    },
+    {
+      kind: "quadratic",
+      a: point(right, bottom),
+      to: point(right - radius, bottom),
+    },
+    {
+      kind: "cubic",
+      a: point(cx + innerW * 0.16, bottom - endInset),
+      b: point(cx - innerW * 0.16, bottom - endInset),
+      to: point(left + radius, bottom),
+    },
+    {
+      kind: "quadratic",
+      a: point(left, bottom),
+      to: point(left, bottom - radius),
+    },
+    {
+      kind: "cubic",
+      a: point(left + sideInset, cy + innerH * 0.16),
+      b: point(left + sideInset, cy - innerH * 0.16),
+      to: point(left, top + radius),
+    },
+    { kind: "quadratic", a: point(left, top), to: point(left + radius, top) },
+  ];
+  return commands;
+}
+
 export function cellGeometry(width, height, trial) {
   const cx = width / 2,
     cy = height / 2 - 2;
@@ -122,46 +170,37 @@ export function cellGeometry(width, height, trial) {
   const retraction = Math.max(0, Math.min(0.88, 1 - trial.volume));
   const sideInset = innerW * 0.42 * retraction;
   const endInset = innerH * 0.42 * retraction;
+  const commands = bowedRectangle(
+    left,
+    top,
+    right,
+    bottom,
+    radius,
+    sideInset,
+    endInset,
+  );
+  // A slight illustrated wall bow is much smaller than membrane retraction.
+  const wallSideInset = wall.width * 0.045 * retraction;
+  const wallEndInset = wall.height * 0.06 * retraction;
+  const wallCommands = bowedRectangle(
+    wall.x,
+    wall.y,
+    wall.x + wall.width,
+    wall.y + wall.height,
+    wall.radius,
+    wallSideInset,
+    wallEndInset,
+  );
+  const wallInnerCommands = bowedRectangle(
+    left,
+    top,
+    right,
+    bottom,
+    radius,
+    wallSideInset,
+    wallEndInset,
+  );
   const point = (x, y) => ({ x, y });
-  const commands = [
-    { kind: "move", to: point(left + radius, top) },
-    {
-      kind: "cubic",
-      a: point(cx - innerW * 0.16, top + endInset),
-      b: point(cx + innerW * 0.16, top + endInset),
-      to: point(right - radius, top),
-    },
-    { kind: "quadratic", a: point(right, top), to: point(right, top + radius) },
-    {
-      kind: "cubic",
-      a: point(right - sideInset, cy - innerH * 0.16),
-      b: point(right - sideInset, cy + innerH * 0.16),
-      to: point(right, bottom - radius),
-    },
-    {
-      kind: "quadratic",
-      a: point(right, bottom),
-      to: point(right - radius, bottom),
-    },
-    {
-      kind: "cubic",
-      a: point(cx + innerW * 0.16, bottom - endInset),
-      b: point(cx - innerW * 0.16, bottom - endInset),
-      to: point(left + radius, bottom),
-    },
-    {
-      kind: "quadratic",
-      a: point(left, bottom),
-      to: point(left, bottom - radius),
-    },
-    {
-      kind: "cubic",
-      a: point(left + sideInset, cy + innerH * 0.16),
-      b: point(left + sideInset, cy - innerH * 0.16),
-      to: point(left, top + radius),
-    },
-    { kind: "quadratic", a: point(left, top), to: point(left + radius, top) },
-  ];
   const vacuoleScale = Math.min(1.09, Math.sqrt(trial.volume));
   const vacuole = {
     x: cx + innerW * 0.025,
@@ -173,6 +212,10 @@ export function cellGeometry(width, height, trial) {
   return {
     ...geometry,
     wall,
+    wallCommands,
+    wallInnerCommands,
+    wallOutline: sampleCommands(wallCommands),
+    wallInnerOutline: sampleCommands(wallInnerCommands),
     innerW,
     innerH,
     commands,

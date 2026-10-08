@@ -2,6 +2,8 @@ import { boundaryAt, containsPoint } from "./geometry.js";
 
 const TAU = Math.PI * 2;
 const GOLDEN_ANGLE = 2.399963229728653;
+const WATER_SPEED = 17;
+const MAX_BALANCED_PAIRS = 2;
 function random(seed) {
   let value = seed;
   return () => {
@@ -13,9 +15,11 @@ function random(seed) {
 export function createParticles(geometry, trial, solute = "sucrose") {
   const rng = random(1059),
     molecules = [];
-  const initialInside = 28;
-  const exteriorWater =
-    solute === "salt" ? 65 : 72 - Math.round(trial.concentration * 1.4);
+  const initialInside = 21;
+  const exteriorWater = Math.round(
+    (solute === "salt" ? 65 : 72 - Math.round(trial.concentration * 1.4)) *
+      0.75,
+  );
   const exteriorSolute =
     solute === "salt" ? 12 : Math.round(trial.concentration * 1.5);
   function add(type, inside, count) {
@@ -34,7 +38,7 @@ export function createParticles(geometry, trial, solute = "sucrose") {
         } while (containsPoint(geometry.outline, x, y));
       }
       const direction = rng() * TAU;
-      const speed = type === "water" ? 13 + rng() * 8 : 5 + rng() * 6;
+      const speed = type === "water" ? WATER_SPEED : 5 + rng() * 6;
       molecules.push({
         id: molecules.length,
         type,
@@ -51,7 +55,6 @@ export function createParticles(geometry, trial, solute = "sucrose") {
   add("water", true, initialInside);
   add("water", false, exteriorWater);
   add("solute", false, exteriorSolute);
-  add("cell-solute", true, 8);
   return {
     molecules,
     initialInside,
@@ -114,6 +117,7 @@ function launch(state, p, entering, geometry, duration = 1.7) {
     ? edge.distance * (0.35 + state.rng() * 0.2)
     : Math.min(edge.distance + 25 + state.rng() * 20, roomX, roomY);
   p.transfer = {
+    kind: "net",
     entering,
     angle,
     duration,
@@ -124,6 +128,126 @@ function launch(state, p, entering, geometry, duration = 1.7) {
     startFraction:
       Math.hypot(p.x - geometry.cx, p.y - geometry.cy) / edge.distance,
   };
+}
+
+function radialRoom(geometry, angle) {
+  const dx = Math.cos(angle),
+    dy = Math.sin(angle);
+  return Math.min(
+    dx > 0 ? (geometry.width - 7 - geometry.cx) / dx : (7 - geometry.cx) / dx,
+    dy > 0 ? (geometry.height - 7 - geometry.cy) / dy : (7 - geometry.cy) / dy,
+  );
+}
+
+function launchBalancedPair(state, geometry, angle) {
+  const candidates = state.molecules
+    .filter((p) => p.type === "water" && !p.transfer)
+    .map((p) => {
+      const direction = Math.atan2(p.y - geometry.cy, p.x - geometry.cx);
+      const radius = Math.hypot(p.x - geometry.cx, p.y - geometry.cy);
+      const edge = boundaryAt(geometry, direction).distance;
+      return {
+        p,
+        direction,
+        radius,
+        edge,
+        gap: Math.abs(radius - edge),
+        room: radialRoom(geometry, direction),
+      };
+    })
+    .filter((c) => (c.p.inside ? c.radius < c.edge : c.radius > c.edge));
+  let bestPair,
+    bestScore = Infinity;
+  for (const incoming of candidates.filter((c) => !c.p.inside)) {
+    for (const outgoing of candidates.filter((c) => c.p.inside)) {
+      const approach = Math.max(incoming.gap, outgoing.gap);
+      // A short radial turn gives both routes the same length, so both
+      // molecules move at WATER_SPEED and cross the membrane together.
+      const inTurn = (approach - incoming.gap) / 2;
+      const outTurn = (approach - outgoing.gap) / 2;
+      if (
+        incoming.radius + inTurn > incoming.room ||
+        outgoing.radius - outTurn < 3
+      )
+        continue;
+      const angleGap = (a, b) =>
+        Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+      const score =
+        angleGap(incoming.direction, angle) +
+        angleGap(outgoing.direction, angle + Math.PI) +
+        approach * 0.025;
+      if (score < bestScore) {
+        bestScore = score;
+        bestPair = { incoming, outgoing, approach, inTurn, outTurn };
+      }
+    }
+  }
+  if (!bestPair) return;
+  const { incoming, outgoing, approach, inTurn, outTurn } = bestPair;
+  const after = Math.min(
+    18,
+    incoming.edge * 0.55,
+    outgoing.room - outgoing.edge - 2,
+  );
+  for (const [candidate, entering, turn] of [
+    [incoming, true, inTurn],
+    [outgoing, false, outTurn],
+  ]) {
+    candidate.p.transfer = {
+      kind: "balanced",
+      entering,
+      angle: candidate.direction,
+      elapsed: 0,
+      crossed: false,
+      approach,
+      after,
+      turn,
+      segment: 0,
+      startDistance: candidate.radius,
+      initialEdge: candidate.edge,
+    };
+  }
+}
+
+function crossMembrane(p, state, transfer) {
+  if (transfer.crossed) return;
+  transfer.crossed = true;
+  p.inside = transfer.entering;
+  const direction = transfer.entering ? "in" : "out";
+  state.crossings[direction]++;
+  const quadrant = Math.floor(((transfer.angle + TAU) % TAU) / (Math.PI / 2));
+  state.quadrants[direction][quadrant]++;
+}
+
+function advanceBalanced(p, state, geometry, dt) {
+  const transfer = p.transfer;
+  transfer.elapsed += dt;
+  const travelled = transfer.elapsed * WATER_SPEED;
+  const edge = boundaryAt(geometry, transfer.angle).distance;
+  let radius;
+  if (travelled < transfer.approach) {
+    const away = Math.min(travelled, transfer.turn);
+    const toward = Math.max(0, travelled - transfer.turn);
+    radius =
+      transfer.startDistance + (transfer.entering ? 1 : -1) * (away - toward);
+    radius = transfer.entering
+      ? radius + edge - transfer.initialEdge
+      : (radius * edge) / transfer.initialEdge;
+    transfer.segment = travelled < transfer.turn ? 0 : 1;
+  } else {
+    crossMembrane(p, state, transfer);
+    const after = Math.min(transfer.after, travelled - transfer.approach);
+    radius = edge + (transfer.entering ? -after : after);
+    transfer.segment = 2;
+  }
+  p.x = geometry.cx + Math.cos(transfer.angle) * radius;
+  p.y = geometry.cy + Math.sin(transfer.angle) * radius;
+  if (travelled >= transfer.approach + transfer.after) {
+    const direction = transfer.entering ? -1 : 1;
+    p.vx = direction * Math.cos(transfer.angle) * WATER_SPEED;
+    p.vy = direction * Math.sin(transfer.angle) * WATER_SPEED;
+    p.transfer = null;
+  }
 }
 
 function drift(p, state, geometry, dt, burst) {
@@ -171,8 +295,15 @@ export function advanceParticles(state, geometry, trial, dt) {
           Math.sin(p.transfer.angle) * sy,
           Math.cos(p.transfer.angle) * sx,
         );
-        p.transfer.distance *= Math.min(sx, sy);
         p.transfer.startDistance *= Math.min(sx, sy);
+        if (p.transfer.kind === "balanced") {
+          p.transfer.initialEdge *= Math.min(sx, sy);
+          p.transfer.approach *= Math.min(sx, sy);
+          p.transfer.after *= Math.min(sx, sy);
+          p.transfer.turn *= Math.min(sx, sy);
+        } else {
+          p.transfer.distance *= Math.min(sx, sy);
+        }
       }
     }
     state.width = geometry.width;
@@ -198,15 +329,12 @@ export function advanceParticles(state, geometry, trial, dt) {
       launch(state, p, entering, geometry);
     }
     state.pairTimer -= dt;
-    if (state.pairTimer <= 0) {
+    const balancedCount =
+      state.molecules.filter((p) => p.transfer?.kind === "balanced").length / 2;
+    if (state.pairTimer <= 0 && balancedCount < MAX_BALANCED_PAIRS) {
       const angle = state.sequence++ * GOLDEN_ANGLE;
-      const incoming = choose(state, true, angle);
-      const outgoing = choose(state, false, angle + Math.PI);
-      if (incoming && outgoing) {
-        launch(state, incoming, true, geometry);
-        launch(state, outgoing, false, geometry);
-      }
-      state.pairTimer = 0.65;
+      launchBalancedPair(state, geometry, angle);
+      state.pairTimer = 0.8;
     }
   }
   for (const p of state.molecules) {
@@ -214,6 +342,10 @@ export function advanceParticles(state, geometry, trial, dt) {
     if (trial.burst) p.transfer = null;
     if (!p.transfer) {
       drift(p, state, geometry, dt, trial.burst);
+      continue;
+    }
+    if (transfer.kind === "balanced") {
+      advanceBalanced(p, state, geometry, dt);
       continue;
     }
     transfer.elapsed += dt;
@@ -229,16 +361,7 @@ export function advanceParticles(state, geometry, trial, dt) {
       p.x = startX + (edge.x - startX) * f;
       p.y = startY + (edge.y - startY) * f;
     } else {
-      if (!transfer.crossed) {
-        transfer.crossed = true;
-        p.inside = transfer.entering;
-        const direction = transfer.entering ? "in" : "out";
-        state.crossings[direction]++;
-        const quadrant = Math.floor(
-          ((transfer.angle + TAU) % TAU) / (Math.PI / 2),
-        );
-        state.quadrants[direction][quadrant]++;
-      }
+      crossMembrane(p, state, transfer);
       const f = progress * 2 - 1;
       const endDistance = transfer.entering
         ? Math.min(transfer.distance, edge.distance * 0.65)
@@ -265,6 +388,10 @@ export function particleSnapshot(state) {
         transferring: !!p.transfer,
       })),
     crossings: { ...state.crossings },
+    transfers: {
+      in: state.molecules.filter((p) => p.transfer?.entering === true).length,
+      out: state.molecules.filter((p) => p.transfer?.entering === false).length,
+    },
     quadrants: { in: [...state.quadrants.in], out: [...state.quadrants.out] },
     inside: state.molecules.filter((p) => p.type === "water" && p.inside)
       .length,

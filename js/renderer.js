@@ -6,10 +6,6 @@ import {
 } from "./particles.js";
 
 const chambers = new WeakMap();
-function rounded(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
-}
 function hexagon(ctx, x, y, r) {
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
@@ -130,15 +126,15 @@ export function drawChamber(
   const callouts = [];
 
   if (trial.cell === "plant") {
-    const { wall, innerW, innerH, vacuole } = geometry;
-    rounded(ctx, wall.x, wall.y, wall.width, wall.height, wall.radius);
+    const { innerW, innerH, vacuole } = geometry;
+    membranePath(ctx, { commands: geometry.wallCommands });
     ctx.fillStyle = "#dcebc7";
     ctx.fill();
     ctx.lineWidth = 3.5;
     ctx.strokeStyle = "#7e9f65";
     ctx.stroke();
-    // The wall's inner surface uses exactly the starting membrane contour.
-    membranePath(ctx, cellGeometry(w, h, { ...trial, volume: 1 }));
+    // At the starting volume, the membrane is flush with this inner surface.
+    membranePath(ctx, { commands: geometry.wallInnerCommands });
     ctx.fillStyle = "#f7fbef";
     ctx.fill();
     membranePath(ctx, geometry);
@@ -188,12 +184,16 @@ export function drawChamber(
     ctx.strokeStyle = "#916b9c";
     ctx.stroke();
     if (labels) {
+      const wallPoint = boundaryAt(
+        { ...geometry, outline: geometry.wallOutline },
+        -Math.PI * 0.2,
+      );
       callouts.push([
         t("cellWall"),
         w - 10,
         31,
-        wall.x + wall.width,
-        cy - wall.height * 0.34,
+        wallPoint.x,
+        wallPoint.y,
         "right",
       ]);
       const membrane = boundaryAt(geometry, Math.PI * 0.72);
@@ -271,11 +271,6 @@ export function drawChamber(
           : "#459fc27a";
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.transfer ? 3.0 : 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (p.type === "cell-solute") {
-      ctx.fillStyle = "#a58b94aa";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
       ctx.fill();
     } else if (solute === "salt") {
       ctx.fillStyle = "#c9a057a0";

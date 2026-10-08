@@ -9,6 +9,7 @@ import {
 } from "./model.js";
 import { translate } from "./i18n.js";
 import { drawChamber } from "./renderer.js";
+import { conclusionPoint } from "./conclusion.js";
 import { setupExtension } from "./extension.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -283,17 +284,18 @@ function renderConclusion() {
     state.tone === "hypo" ? "in" : state.tone === "hyper" ? "out" : "both",
   );
   const points = [
-    t(state.tone + "Relation", {
-      solution: format(state.solutionPsi),
-      cell: format(state.initialPsi),
-    }),
-    t(state.tone + "Movement"),
-    t(outcome(state) + "Description"),
+    [
+      state.tone + "Relation",
+      {
+        solution: format(state.solutionPsi),
+        cell: format(state.initialPsi),
+      },
+    ],
+    [state.burst ? "hypoBurstMovement" : state.tone + "Movement"],
+    [outcome(state) + "Description"],
   ];
   $("#conclusion").replaceChildren(
-    ...points.map((point) =>
-      Object.assign(document.createElement("li"), { textContent: point }),
-    ),
+    ...points.map(([key, parameters]) => conclusionPoint(key, t, parameters)),
   );
   $("#prediction-feedback").hidden = !prediction;
   const expected = movementKey(state);

@@ -32,9 +32,13 @@ All application asset paths are relative, so the simulator works under a reposit
 
 The top-right language control translates controls, diagrams, feedback and saved notebook entries while preserving the current experiment.
 
-The starting plant membrane is flush with the cell wall. During plasmolysis, its four rounded corners retain contact with the wall while the sides bow inward and the vacuole becomes smaller. This is the attachment pattern chosen for the teaching diagram; real attachment patterns can vary.
+The starting plant membrane is flush with the cell wall. During plasmolysis, its four rounded corners retain contact with the wall while the sides bow inward and the vacuole becomes smaller. The wall has a slight illustrated inward bow; its movement is much smaller than the membrane's retraction. This is the attachment pattern chosen for the teaching diagram; real attachment patterns can vary.
 
 Water molecules keep their identities and move across the membrane from around the whole cell. Equal inward and outward exchanges continue in the starting view and at equilibrium; during osmosis, additional transfers change the amount of water inside. Starting, pausing and changing language preserve the particles. Resetting or changing the experiment prepares a fresh population. Leader lines have horizontal ends beside their labels.
+
+Water-dot density is reduced by approximately 25% for clarity. At equilibrium all water dots use the same schematic speed, with at most two simultaneous matched inward/outward pairs. The matched molecules cross together without changing the total amount of water inside. The core diagram shows blue water and yellow sucrose particles; the small grey internal-solute dots are omitted.
+
+Conclusion key terms appear in red in both languages, including net movement and its direction, equilibrium, and the observed cell state. The same highlighting style is used for the extension's X/Y/Z results.
 
 ### Extension study / 延伸學習
 
@@ -62,7 +66,7 @@ The extension enlarges small shape changes sixfold for visibility. Its numerical
 - Fresh core-lab cells start at **−500 kPa**, with a fixed amount of impermeant internal solute. This is an illustrative comparative model value, not the measured potential of every real cell. Their water potentials change during osmosis.
 - The bath is a large reservoir whose concentration stays constant. Sucrose does not cross the cell membrane in this model. The cell wall is freely permeable to water and sucrose, so both can enter the space between wall and membrane during plasmolysis. The wall is not used as a particle barrier.
 - Animal-cell solute potential changes inversely with relative water volume. The illustrative red-blood-cell rupture threshold is 1.6 times its starting volume; mild hypotonic solutions can produce swelling without haemolysis.
-- Plant-cell potential combines the solute term with an illustrative rising pressure term above starting volume: `Ψcell = −500/V + max(0, V − 1) × 3000 kPa`. The pressure term resists expansion and permits equilibrium in pure water. The fixed wall outline contains changing cell contents; the volume display refers to those contents, not wall-enclosed volume.
+- Plant-cell potential combines the solute term with an illustrative rising pressure term above starting volume: `Ψcell = −500/V + max(0, V − 1) × 3000 kPa`. The pressure term resists expansion and permits equilibrium in pure water. The stiff wall contains changing cell contents, with a small illustrated inward flex during plasmolysis; the volume display refers to those contents, not wall-enclosed volume.
 - Fresh plant cells start in a flaccid reference state. Water loss can cause flaccidity before marked plasmolysis; obvious plasmolysis is represented below relative contents volume 0.9.
 - Water moves in both directions, including at equilibrium. Numerical core-lab values within 1 kPa are treated as equal to account for rounded inputs.
 - Tonicity is recorded relative to each cell at the **start of that trial**, even after equilibrium. For a recovery trial the starting cell is the existing shrunken cell.
