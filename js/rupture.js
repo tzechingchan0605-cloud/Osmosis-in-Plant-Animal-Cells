@@ -1,62 +1,131 @@
-// Open, jagged membrane remnants distinguish a burst animal cell from an
-// intact swollen cell. Organelles are drawn separately by the renderer.
+// The swollen cell opens at two membrane sites. Its body remains visible while
+// pink cytoplasm jets through the tears, following the supplied textbook figure.
 export function drawRupturedCell(ctx, geometry, progress) {
-  const { cx, cy, rx, ry } = geometry;
-  const opening = 0.12 + progress * 0.22;
+  const { cx, cy, rx, ry, base } = geometry;
+  const opening = progress * progress * (3 - 2 * progress);
+  const sites = [
+    { angle: 3.84, halfGap: 0.015 + opening * 0.13, size: 0.55 },
+    { angle: 0.7, halfGap: 0.015 + opening * 0.22, size: 1.05 },
+  ];
+  const point = (angle, scale = 1) => ({
+    x: cx + Math.cos(angle) * rx * scale,
+    y: cy + Math.sin(angle) * ry * scale,
+  });
+  const arc = (start, end, move = false) => {
+    for (let i = 0; i <= 64; i++) {
+      const p = point(start + ((end - start) * i) / 64);
+      if (move && i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+  };
+  const tear = (site) => {
+    for (let i = 1; i <= 7; i++) {
+      const angle = site.angle - site.halfGap + (site.halfGap * 2 * i) / 7;
+      const inset = i === 7 ? 0 : (i % 2 ? 0.09 : 0.24) * opening;
+      const p = point(angle, 1 - inset);
+      ctx.lineTo(p.x, p.y);
+    }
+  };
+  const [leftSite, rightSite] = sites;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(geometry.rotation ?? 0);
   ctx.translate(-cx, -cy);
-  ctx.fillStyle = "#f3c8d8b8";
-  ctx.strokeStyle = "#d86a96";
-  ctx.lineWidth = 1.7;
-  for (const side of [-1, 1]) {
-    const offset = side * ry * progress * 0.12;
-    const start = side === -1 ? Math.PI + 0.28 : 0.28;
-    const end = side === -1 ? 2 * Math.PI - 0.28 : Math.PI - 0.28;
+
+  // Filled cytoplasm has two notches; membrane strokes stop at their lips.
+  ctx.beginPath();
+  arc(
+    rightSite.angle + rightSite.halfGap,
+    leftSite.angle - leftSite.halfGap,
+    true,
+  );
+  tear(leftSite);
+  arc(
+    leftSite.angle + leftSite.halfGap,
+    rightSite.angle - rightSite.halfGap + Math.PI * 2,
+  );
+  tear(rightSite);
+  ctx.closePath();
+  ctx.fillStyle = "#f7d4e2";
+  ctx.fill();
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle = "#e85b9499";
+  for (let i = 0; i < 140; i++) {
+    const jitter = Math.sin(i * 73.31) * 0.18;
+    const x = cx + (((i % 10) + 0.5 + jitter) / 10 - 0.5) * rx * 2.1;
+    const y = cy + ((Math.floor(i / 10) + 0.5 - jitter) / 14 - 0.5) * ry * 2.6;
     ctx.beginPath();
-    for (let i = 0; i <= 48; i++) {
-      const angle = start + ((end - start) * i) / 48;
-      const x = cx + Math.cos(angle) * rx;
-      const y = cy + Math.sin(angle) * ry + offset;
-      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-    }
-    // Ragged lips retract from a wide opening through the former cell centre.
-    const backwards = side === -1 ? 1 : -1;
-    for (let i = 0; i <= 14; i++) {
-      const fraction = i / 14;
-      const x = cx + backwards * rx * (1 - fraction * 2) * 0.96;
-      const ragged =
-        (i % 2 ? -0.1 : 0.075) * (0.55 + (1 + Math.sin(i * 2.7)) * 0.4);
-      ctx.lineTo(x, cy + side * ry * (opening + ragged) + offset);
-    }
-    ctx.closePath();
+    ctx.arc(x, y, Math.max(0.75, base * 0.014), 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
   }
-  // Small pieces separate at the two rupture sites.
-  for (const side of [-1, 1]) {
-    const x = cx + side * rx * (0.98 + progress * 0.2);
-    const y = cy + side * ry * 0.1;
-    ctx.beginPath();
-    ctx.moveTo(x, y - ry * 0.12);
-    ctx.lineTo(x + side * rx * 0.13, y - ry * 0.02);
-    ctx.lineTo(x + side * rx * 0.08, y + ry * 0.12);
-    ctx.lineTo(x - side * rx * 0.03, y + ry * 0.05);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-  for (let i = 0; i < 48; i++) {
-    const side = i % 2 ? -1 : 1;
-    const spread = (i % 11) / 10;
-    const angle = i * 2.399963;
-    const endX = cx + side * rx * (0.75 + spread * 0.65);
-    const endY = cy + Math.sin(angle) * ry * (0.25 + spread * 0.8);
-    ctx.fillStyle = `rgba(217, 90, 146, ${0.56 * progress})`;
-    ctx.beginPath();
-    ctx.arc(endX, endY, 1.2 + (i % 3) * 0.45, 0, Math.PI * 2);
-    ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = "#dd6b9d";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  arc(
+    rightSite.angle + rightSite.halfGap,
+    leftSite.angle - leftSite.halfGap,
+    true,
+  );
+  arc(
+    leftSite.angle + leftSite.halfGap,
+    rightSite.angle - rightSite.halfGap + Math.PI * 2,
+    true,
+  );
+  ctx.stroke();
+
+  const release = Math.max(0, (progress - 0.04) / 0.96);
+  for (const site of sites) {
+    const origin = point(site.angle, 0.94);
+    const outward = { x: Math.cos(site.angle), y: Math.sin(site.angle) };
+    const tangent = { x: -outward.y, y: outward.x };
+    const length = base * site.size * release;
+    const width = base * site.size * 0.38 * release;
+    const jetPoint = (distance, spread) => ({
+      x: origin.x + outward.x * distance + tangent.x * spread,
+      y: origin.y + outward.y * distance + tangent.y * spread,
+    });
+    if (release > 0) {
+      ctx.fillStyle = "#f5c8df";
+      // Connected, lobed sprays grow out of each hole instead of appearing as
+      // detached membrane halves or a gap running through the cell centre.
+      ctx.beginPath();
+      const start = jetPoint(0, -width * 0.18);
+      ctx.moveTo(start.x, start.y);
+      for (let i = 0; i <= 10; i++) {
+        const a = -Math.PI / 2 + (Math.PI * i) / 10;
+        const radial = i % 2 ? 1 : 0.68;
+        const end = jetPoint(
+          length * (0.5 + Math.cos(a) * 0.5 * radial),
+          Math.sin(a) * width,
+        );
+        const control = jetPoint(
+          length * (0.55 + Math.cos(a - 0.14) * 0.55),
+          Math.sin(a - 0.14) * width * 1.15,
+        );
+        ctx.quadraticCurveTo(control.x, control.y, end.x, end.y);
+      }
+      const finish = jetPoint(0, width * 0.18);
+      ctx.lineTo(finish.x, finish.y);
+      ctx.closePath();
+      ctx.fill();
+      for (let i = 0; i < 5; i++) {
+        const p = jetPoint(
+          length * (0.6 + i * 0.14),
+          width * Math.sin(i * 2.7) * 1.4,
+        );
+        ctx.beginPath();
+        ctx.arc(
+          p.x,
+          p.y,
+          base * (0.017 + (i % 3) * 0.012) * release,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+    }
   }
   ctx.restore();
 }

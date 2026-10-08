@@ -84,6 +84,24 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   );
   await expect(page.locator("#prediction-feedback")).toContainText("matched");
   await expect(page.locator("#trials-body tr")).toHaveCount(1);
+  const notebookCells = page.locator("#trials-body tr").first().locator("td");
+  await expect(notebookCells).toHaveCount(7);
+  await expect(notebookCells.nth(2)).toHaveText("−750 kPa");
+  await expect(notebookCells.nth(3).locator("strong")).toHaveCSS(
+    "color",
+    "rgb(179, 43, 43)",
+  );
+  await expect(notebookCells.nth(4)).toHaveCSS("color", "rgb(179, 43, 43)");
+  await expect(notebookCells.nth(5)).toHaveCSS("color", "rgb(179, 43, 43)");
+  const initialBathPsi = Number(
+    await page
+      .locator("#before-canvas")
+      .getAttribute("data-solution-potential"),
+  );
+  const finalBathPsi = Number(
+    await page.locator("#after-canvas").getAttribute("data-solution-potential"),
+  );
+  expect(finalBathPsi).toBeGreaterThan(initialBathPsi);
   const finalVolume = await page.locator("#after-volume").textContent();
   await page.locator("#language-button").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-Hant");
@@ -114,6 +132,17 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
     "平衡",
   ]);
   await expect(page.locator("#trials-body tr")).toHaveCount(2);
+  const recoveryCells = page.locator("#trials-body tr").last().locator("td");
+  await expect(recoveryCells.nth(2)).not.toHaveText("−750 kPa");
+  for (const index of [4, 5])
+    await expect(recoveryCells.nth(index)).toHaveCSS(
+      "color",
+      "rgb(36, 129, 70)",
+    );
+  await expect(recoveryCells.nth(3).locator("strong")).toHaveCSS(
+    "color",
+    "rgb(36, 129, 70)",
+  );
   expect(
     parseFloat(await page.locator("#after-volume").textContent()),
   ).toBeGreaterThan(1);
@@ -154,6 +183,10 @@ test("Animal cells show lysis in pure water and wrinkles in concentrated sucrose
   await expect(page.locator("#after-canvas")).toHaveAttribute(
     "data-rupture-progress",
     "1.000",
+  );
+  await expect(page.locator("#after-canvas")).toHaveAttribute(
+    "data-rupture-openings",
+    "2",
   );
   await expect(page.locator("#after-canvas")).toHaveAttribute(
     "data-cell-potential",
@@ -313,7 +346,7 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
   expect(await snapshot()).toEqual(paused);
   await page.locator("#start-button").click();
   await expect(page.locator("#result-card")).toBeVisible();
-  await expect.poll(async () => (await snapshot()).inside).toBe(11);
+  await expect.poll(async () => (await snapshot()).inside).toBe(12);
   const complete = await snapshot();
   const insidePsi = Number(
     await page.locator("#after-canvas").getAttribute("data-cell-potential"),

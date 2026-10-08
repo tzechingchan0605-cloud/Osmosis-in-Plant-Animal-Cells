@@ -1,6 +1,7 @@
-// Classroom model: sucrose is impermeant, the bath is a large reservoir,
+// Classroom model: sucrose is impermeant and the bath has finite water volume,
 // temperature is 25 °C, and the initial cell has no pressure potential.
 export const CELL_PSI = -750;
+export const INITIAL_SOLUTION_VOLUME = 4; // Relative water volume, cell starts at 1.
 export const MAX_CONCENTRATION = 20;
 export const KPA_PER_PERCENT = (10 / 342.3) * 8.314 * 298.15;
 export const BURST_VOLUME = 1.6;
@@ -23,13 +24,46 @@ export function classify(solutionPsi, cellPsi = CELL_PSI) {
       ? "hypo"
       : "hyper";
 }
-export function equilibriumVolume(cell, solutionPsi) {
+export function equilibriumVolume(
+  cell,
+  initialSolutionPsi,
+  initialVolume = 1,
+  initialSolutionVolume = INITIAL_SOLUTION_VOLUME,
+) {
+  if (Math.abs(cellPotential(cell, initialVolume) - initialSolutionPsi) < 1e-7)
+    return initialVolume;
+  const totalWater = initialVolume + initialSolutionVolume;
   if (cell === "animal")
-    return solutionPsi === 0 ? Infinity : CELL_PSI / solutionPsi;
-  if (solutionPsi <= CELL_PSI) return CELL_PSI / solutionPsi;
-  // 3000v² - (3000 + solutionPsi)v + CELL_PSI = 0.
-  const term = 3000 + solutionPsi;
-  return (term + Math.sqrt(term * term - 12000 * CELL_PSI)) / 6000;
+    return initialSolutionPsi === 0
+      ? Infinity
+      : (CELL_PSI * totalWater) /
+          (CELL_PSI + initialSolutionPsi * initialSolutionVolume);
+  // Solve against the changing bath, conserving its impermeant solute and
+  // total water. Cell potential increases monotonically with cell volume,
+  // while bath potential decreases, so the common equilibrium is unique.
+  let low = 1e-9,
+    high = totalWater - 1e-9;
+  for (let i = 0; i < 64; i++) {
+    const volume = (low + high) / 2;
+    const bathPsi =
+      (initialSolutionPsi * initialSolutionVolume) / (totalWater - volume);
+    if (cellPotential(cell, volume) > bathPsi) high = volume;
+    else low = volume;
+  }
+  return (low + high) / 2;
+}
+
+function updateSolution(trial) {
+  const totalWater = trial.initialVolume + trial.initialSolutionVolume;
+  trial.solutionVolume = trial.burst ? totalWater : totalWater - trial.volume;
+  trial.solutionConcentration =
+    (trial.concentration * trial.initialSolutionVolume) / trial.solutionVolume;
+  // After rupture, the released cell solutes share the whole water pool.
+  trial.solutionPsi =
+    (trial.initialSolutionPsi * trial.initialSolutionVolume +
+      (trial.burst ? CELL_PSI : 0)) /
+    trial.solutionVolume;
+  return trial;
 }
 export function createTrial(cell, concentration, initialVolume = 1) {
   if (
@@ -47,6 +81,10 @@ export function createTrial(cell, concentration, initialVolume = 1) {
     cell,
     concentration,
     solutionPsi,
+    initialSolutionPsi: solutionPsi,
+    initialSolutionVolume: INITIAL_SOLUTION_VOLUME,
+    solutionVolume: INITIAL_SOLUTION_VOLUME,
+    solutionConcentration: concentration,
     initialPsi,
     initialVolume,
     volume: initialVolume,
@@ -60,14 +98,28 @@ export function advanceTrial(trial, dt) {
   if (trial.status !== "running") return trial;
   const next = { ...trial, elapsed: trial.elapsed + dt };
   if (trial.tone === "iso") {
-    if (next.elapsed >= 2.5) next.status = "complete";
-    return next;
+    if (next.elapsed >= 2.5) {
+      next.volume = equilibriumVolume(
+        trial.cell,
+        trial.initialSolutionPsi,
+        trial.initialVolume,
+        trial.initialSolutionVolume,
+      );
+      next.status = "complete";
+    }
+    return updateSolution(next);
   }
-  const equilibrium = equilibriumVolume(trial.cell, trial.solutionPsi);
+  const equilibrium = equilibriumVolume(
+    trial.cell,
+    trial.initialSolutionPsi,
+    trial.initialVolume,
+    trial.initialSolutionVolume,
+  );
   const willBurst = trial.cell === "animal" && equilibrium >= BURST_VOLUME;
   const target = willBurst ? BURST_VOLUME + 0.12 : equilibrium;
   // Schematic time, not a measurement of biological permeability or rate.
   next.volume += (target - next.volume) * (1 - Math.exp(-0.85 * dt));
+  updateSolution(next);
   if (willBurst && next.volume >= BURST_VOLUME) {
     next.volume = BURST_VOLUME;
     next.burst = true;
@@ -79,7 +131,7 @@ export function advanceTrial(trial, dt) {
     next.volume = equilibrium;
     next.status = "complete";
   }
-  return next;
+  return updateSolution(next);
 }
 export function outcome(trial) {
   if (trial.tone === "iso") return "unchanged";

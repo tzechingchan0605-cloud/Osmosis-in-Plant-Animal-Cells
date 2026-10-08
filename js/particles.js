@@ -107,7 +107,14 @@ function choose(state, entering, angle) {
   return chosen;
 }
 
-function launch(state, p, entering, geometry, duration = 1.7) {
+function launch(
+  state,
+  p,
+  entering,
+  geometry,
+  duration = 1.7,
+  intoVacuole = false,
+) {
   const angle = Math.atan2(p.y - geometry.cy, p.x - geometry.cx);
   const edge = boundaryAt(geometry, angle);
   const dx = Math.cos(angle),
@@ -126,6 +133,7 @@ function launch(state, p, entering, geometry, duration = 1.7) {
     duration,
     elapsed: 0,
     crossed: false,
+    intoVacuole,
     distance,
     startDistance: Math.hypot(p.x - geometry.cx, p.y - geometry.cy),
     startFraction:
@@ -408,16 +416,29 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
     }
     // Net osmosis can have more simultaneous crossings. The one-to-two
     // matched-pair limit applies to the reference view and equilibrium.
-    for (let i = 0; i < Math.min(3, Math.abs(difference)); i++) {
+    for (let i = 0; i < Math.min(4, Math.abs(difference)); i++) {
       const entering = difference > 0;
       const p = choose(state, entering, state.sequence++ * GOLDEN_ANGLE);
       if (!p) break;
-      launch(state, p, entering, geometry);
+      const intoVacuole = entering && trial.cell === "plant";
+      const duration =
+        intoVacuole && changing
+          ? Math.max(
+              1.7,
+              Math.min(
+                5.5,
+                Math.abs(trial.initialPsi - trial.initialSolutionPsi) / 130,
+              ),
+            )
+          : 1.7;
+      launch(state, p, entering, geometry, duration, intoVacuole);
     }
     state.pairTimer -= dt;
     const balancedCount =
       state.molecules.filter((p) => p.transfer?.kind === "balanced").length / 2;
-    const pairLimit = changing ? 4 : MAX_BALANCED_PAIRS;
+    // A single simultaneous counterflow pair keeps the slower direction
+    // visible, while additional real transfers make net osmosis stand out.
+    const pairLimit = changing ? 1 : MAX_BALANCED_PAIRS;
     if (state.pairTimer <= 0 && balancedCount < pairLimit) {
       const angle = state.sequence++ * GOLDEN_ANGLE;
       launchBalancedPair(
@@ -469,8 +490,14 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
       const endDistance = transfer.entering
         ? Math.min(transfer.distance, edge.distance * 0.65)
         : Math.max(transfer.distance, edge.distance + 12);
-      const endX = geometry.cx + Math.cos(transfer.angle) * endDistance;
-      const endY = geometry.cy + Math.sin(transfer.angle) * endDistance;
+      const vacuole =
+        transfer.entering && transfer.intoVacuole && geometry.vacuole;
+      const endX = vacuole
+        ? vacuole.x + Math.cos(transfer.angle) * vacuole.rx * 0.45
+        : geometry.cx + Math.cos(transfer.angle) * endDistance;
+      const endY = vacuole
+        ? vacuole.y + Math.sin(transfer.angle) * vacuole.ry * 0.45
+        : geometry.cy + Math.sin(transfer.angle) * endDistance;
       p.x = edge.x + (endX - edge.x) * f;
       p.y = edge.y + (endY - edge.y) * f;
     }

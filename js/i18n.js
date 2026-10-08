@@ -71,6 +71,8 @@ export const translations = {
     solution: "Solution",
     solutionPsiShort: "Solution Ψ",
     cellPsiShort: "Cell Ψ",
+    initialCellPsiShort: "Initial cell Ψ",
+    initialSolutionPsiShort: "Initial solution Ψ",
     netMovementShort: "Net movement",
     observation: "Observation",
     footer: "Made for curious minds · F.4 Biology",
@@ -183,43 +185,29 @@ export const translations = {
     observationQuestion: "THE OBSERVATION",
     observationHeading: "Most look regular. A few look wrinkled.",
     observationScenario:
-      "Imagine these red blood cells are in the same 0.9% saline solution. Its given water potential is −794 kPa.",
+      "These red blood cells are immersed in 0.9% sodium chloride solution, with a water potential of −794 kPa.",
     observationPrompt:
-      "Could the same solution affect individual cells differently?",
-    observationAssumption:
-      "For this activity, assume the cells began with comparable regular shapes, cell A stayed unchanged, and cell B shrank because of osmosis.",
+      "Why does the solution affect individual cells differently? Predict the initial water potentials of cells A and B.",
+    initialComparisonA: "Initial water potential: cell A",
+    initialComparisonB: "Initial water potential: cell B",
+    salineSolutionWord: "Sodium chloride solution",
     photoLimit:
       "A picture alone cannot confirm a cell’s starting water potential. We need a controlled test.",
     makeHypothesis: "Build a hypothesis",
     hypothesisLabel: "A TESTABLE HYPOTHESIS",
-    hypothesisHeading:
-      "Individual RBCs may have different initial water potentials.",
-    hypothesisExplanation:
-      "If this is true, the same saline solution may cause different net movements of water in different cells.",
-    shrunkenPrediction:
-      "If cell B shrank by osmosis, I predict its initial water potential was…",
     choosePrediction: "Choose a prediction",
+    chooseAnswer: "Please select",
     higherThanSaline: "Higher than the saline solution",
     equalToSaline: "Equal to the saline solution",
     lowerThanSaline: "Lower than the saline solution",
-    reasonLabel: "My reasoning (optional)",
-    reasonPlaceholder:
-      "Use the water potential gradient to explain your prediction…",
-    hypothesisVsPrediction:
-      "The hypothesis is the proposed explanation. Your prediction is what you expect to happen if it is correct.",
-    controlledTest: "THE CONTROLLED TEST",
     comparePotentials: "Compare the starting water potentials.",
     sharedSaline: "Same 0.9% saline solution",
-    cellX: "Cell X",
-    cellY: "Cell Y",
-    cellZ: "Cell Z",
+    cellA: "Cell A",
+    cellB: "Cell B",
     predictNet: "Predicted net water movement",
     testHypothesis: "Test the predictions",
     sharedBathLabel: "ONE SHARED SALINE SOLUTION",
     saltParticles: "Dissolved salt (schematic)",
-    extensionScaleNote:
-      "Cell Y uses the actual relative size change. The smaller change in cell Z is enlarged 6× for visibility; volume percentages always show the actual model values.",
-    testLower: "Now test a cell with a lower initial water potential",
     explainObservation: "Explain the observation",
     evidenceConclusion: "FROM EVIDENCE TO AN EXPLANATION",
     whatLearned: "What do the tests tell us?",
@@ -231,25 +219,14 @@ export const translations = {
     inferenceLimit:
       "Under our assumptions, the unchanged cell began near −794 kPa; a cell that shrank began above −794 kPa. The image cannot tell us its exact initial value, and real images can also be affected by preparation artefacts.",
     backToLab: "← Back to the osmosis lab",
-    xyTestTitle: "Cell X and cell Y: equal or higher initial Ψ",
-    xzTestTitle: "Cell X and cell Z: equal or lower initial Ψ",
-    yResultTitle: "Cell Y lost water and shrank.",
-    zResultTitle: "Cell Z gained water, rather than shrinking.",
-    xResult:
-      "X: −794 kPa equals the saline solution. Water moved both ways equally; shape and volume stayed unchanged.",
-    yResult:
-      "Y: −700 kPa is HIGHER than −794 kPa. Water moved out of Y overall, and its volume decreased by {change}%. This is the direction expected for a cell that shrinks.",
-    zResult:
-      "Z: −810 kPa is LOWER than −794 kPa. Water moved into Z overall, and its volume increased by {change}%. A lower initial water potential does not explain a shrunken cell.",
+    abTestTitle: "Cell A and cell B: equal or higher initial Ψ",
+    bResultTitle: "Cell B lost water and shrank.",
+    aResult:
+      "A: −794 kPa equals the saline solution. Water moved both ways equally; shape and volume stayed unchanged.",
+    bResult:
+      "B: −700 kPa is HIGHER than −794 kPa. Water moved out of B overall, and its volume decreased by {change}%. This is the direction expected for a cell that shrinks.",
     finalEquilibriumNote:
       "At the end, both cells reach −794 kPa. Water still crosses in both directions, with no net movement. Each cell exchanges water with the surrounding saline.",
-    predictionsMatched: "Your X/Y movement predictions matched the test.",
-    predictionsReview:
-      "Compare with your predictions: X had no net movement; Y lost water.",
-    noPredictions:
-      "Compare these observations with the water potential gradient.",
-    hypothesisReview:
-      "If you predicted that a shrunken cell began with a LOWER water potential, revise that prediction: the lower-potential cell gained water.",
     extensionPaused: "Paused",
     pauseShort: "Pause",
     resumeShort: "Resume",
@@ -266,9 +243,9 @@ export const translations = {
     inferAAnswer:
       "Unchanged A: initial Ψ was approximately equal to the saline solution, −794 kPa, under our assumptions.",
     inferBAnswer:
-      "Shrunken B: initial Ψ was higher (less negative) than −794 kPa, so water moved out. Its exact starting value is unknown.",
+      "Shrunken B: initial Ψ was higher (less negative) than −794 kPa, so water moved out.",
     relativeTonicity:
-      "“Isotonic” is a relationship between a solution and a particular cell. The same solution can be isotonic to X, hypertonic to Y and hypotonic to Z.",
+      "“Isotonic” describes the relationship between a solution and a particular cell. The same solution is isotonic to cell A and hypertonic to cell B.",
     micrographAlt:
       "The supplied blood photograph. Straight leader lines identify the selected normal red blood cell A at lower left and the selected shrunken red blood cell B at upper right. The image also contains white blood cells.",
     extensionCanvasAlt:
@@ -349,6 +326,8 @@ export const translations = {
     solution: "溶液",
     solutionPsiShort: "溶液水勢",
     cellPsiShort: "細胞水勢",
+    initialCellPsiShort: "細胞起始水勢",
+    initialSolutionPsiShort: "溶液起始水勢",
     netMovementShort: "淨移動",
     observation: "觀察結果",
     footer: "探索細胞世界 · 中四生物",
@@ -452,39 +431,28 @@ export const translations = {
     shrunkenRbc: "萎縮的紅血細胞",
     observationQuestion: "觀察現象",
     observationHeading: "大部分形狀正常，少數呈皺褶。",
-    observationScenario:
-      "想像這些紅血細胞浸在同一 0.9% 氯化鈉溶液中。本活動給定溶液水勢為 −794 kPa。",
-    observationPrompt: "相同溶液會否對個別細胞產生不同影響？",
-    observationAssumption:
-      "本活動假設各細胞起初形狀相近且正常，細胞 A 保持不變，而細胞 B 因滲透而萎縮。",
+    observationScenario: "這些紅血細胞正浸於 0.9% 氯化鈉溶液中，即−794 kPa。",
+    observationPrompt:
+      "為什麼溶液會對個別細胞產生不同的影響？試推測細胞A、B的起始水勢。",
+    initialComparisonA: "起始水勢：細胞A",
+    initialComparisonB: "起始水勢：細胞B",
+    salineSolutionWord: "氯化鈉溶液",
     photoLimit: "單憑圖像不能確認細胞的起始水勢，我們需要受控測試。",
     makeHypothesis: "建立假說",
     hypothesisLabel: "可測試的假說",
-    hypothesisHeading: "個別紅血細胞的起始水勢可能不同。",
-    hypothesisExplanation:
-      "如果這個假說成立，同一氯化鈉溶液可能令不同細胞出現不同方向的水分子淨移動。",
-    shrunkenPrediction: "如果細胞 B 因滲透而萎縮，我預測它的起始水勢……",
     choosePrediction: "選擇你的預測",
+    chooseAnswer: "請選擇",
     higherThanSaline: "比氯化鈉溶液高",
     equalToSaline: "與氯化鈉溶液相同",
     lowerThanSaline: "比氯化鈉溶液低",
-    reasonLabel: "我的理由（可選）",
-    reasonPlaceholder: "利用水勢梯度解釋你的預測……",
-    hypothesisVsPrediction:
-      "假說是對現象提出的解釋；預測則是如果假說成立，你預期會觀察到的結果。",
-    controlledTest: "受控測試",
     comparePotentials: "比較細胞的起始水勢。",
     sharedSaline: "同一 0.9% 氯化鈉溶液",
-    cellX: "細胞 X",
-    cellY: "細胞 Y",
-    cellZ: "細胞 Z",
+    cellA: "細胞 A",
+    cellB: "細胞 B",
     predictNet: "預測水分子的淨移動方向",
     testHypothesis: "測試你的預測",
     sharedBathLabel: "共用同一氯化鈉溶液",
     saltParticles: "已溶解的鹽（示意）",
-    extensionScaleNote:
-      "細胞 Y 按實際相對體積變化繪製。細胞 Z 的變化較小，形狀變化放大 6 倍以便觀察；體積變化百分比均顯示模型的實際數值。",
-    testLower: "再測試一個起始水勢較低的細胞",
     explainObservation: "解釋觀察結果",
     evidenceConclusion: "從證據得出解釋",
     whatLearned: "測試結果告訴我們甚麼？",
@@ -496,23 +464,14 @@ export const translations = {
     inferenceLimit:
       "在本活動的假設下，不變的細胞起始水勢接近 −794 kPa；萎縮的細胞則高於 −794 kPa。圖像不能告訴我們其確切起始水勢，真實顯微照片也可能受製片過程影響。",
     backToLab: "← 返回滲透實驗",
-    xyTestTitle: "細胞 X 與 Y：相同或較高的起始水勢",
-    xzTestTitle: "細胞 X 與 Z：相同或較低的起始水勢",
-    yResultTitle: "細胞 Y 失水並萎縮。",
-    zResultTitle: "細胞 Z 吸水，並未萎縮。",
-    xResult:
-      "X：−794 kPa 與溶液水勢相同。水向兩個方向移動的速率相同，形狀和體積維持不變。",
-    yResult:
-      "Y：−700 kPa 比 −794 kPa 高。水分子淨移動離開 Y，體積減少 {change}%。這符合細胞萎縮時預期的淨移動方向。",
-    zResult:
-      "Z：−810 kPa 比 −794 kPa 低。水分子淨移動進入 Z，體積增加 {change}%。起始水勢較低不能解釋萎縮細胞的現象。",
+    abTestTitle: "細胞 A 與 B：相同或較高的起始水勢",
+    bResultTitle: "細胞 B 失水並萎縮。",
+    aResult:
+      "A：−794 kPa 與溶液水勢相同。水向兩個方向移動的速率相同，形狀和體積維持不變。",
+    bResult:
+      "B：−700 kPa 比 −794 kPa 高。水分子淨移動離開 B，體積減少 {change}%。這符合細胞萎縮時預期的淨移動方向。",
     finalEquilibriumNote:
       "最後兩個細胞的水勢均達到 −794 kPa。水仍向兩個方向穿膜移動，但沒有淨移動。各細胞均與周圍氯化鈉溶液交換水份。",
-    predictionsMatched: "你對 X 和 Y 的淨移動預測與測試結果相符。",
-    predictionsReview: "比較你的預測：X 沒有水的淨移動，Y 則失水。",
-    noPredictions: "利用水勢梯度解釋這些觀察結果。",
-    hypothesisReview:
-      "如果你曾預測萎縮細胞的起始水勢較低，請修正預測：水勢較低的細胞會吸水。",
     extensionPaused: "已暫停",
     pauseShort: "暫停",
     resumeShort: "繼續",
@@ -527,9 +486,9 @@ export const translations = {
     inferAAnswer:
       "不變的 A：在本活動的假設下，其起始水勢約等於氯化鈉溶液水勢，即 −794 kPa。",
     inferBAnswer:
-      "萎縮的 B：其起始水勢比 −794 kPa 高（負值較小），因此水會離開細胞。其確切起始水勢仍未知。",
+      "萎縮的 B：其起始水勢比 −794 kPa 高（負值較小），因此水會離開細胞。",
     relativeTonicity:
-      "「等滲」描述溶液與特定細胞之間的關係。同一溶液相對 X 是等滲的，相對 Y 是高滲的，相對 Z 則是低滲的。",
+      "「等滲」描述溶液與特定細胞之間的關係。同一溶液相對 細胞A 是等滲的，相對 細胞B 是高滲的。",
     micrographAlt:
       "教師提供的血液顯微照片。直線標註左下方所選的形狀正常紅血細胞 A，以及右上方所選的萎縮紅血細胞 B。圖中亦有白血細胞。",
     extensionCanvasAlt:

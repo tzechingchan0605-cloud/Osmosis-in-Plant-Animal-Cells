@@ -30,36 +30,51 @@ test("Supplied photo uses biological leader lines and the requested source citat
   expect((await photo.body()).length).toBeGreaterThan(10000);
   await page.locator("#language-button").click();
   await expect(page.locator(".biological-labels")).toContainText("萎縮的");
+  await expect(page.locator('[data-i18n="observationScenario"]')).toHaveText(
+    "這些紅血細胞正浸於 0.9% 氯化鈉溶液中，即−794 kPa。",
+  );
+  await expect(page.locator('[data-i18n="observationPrompt"]')).toHaveText(
+    "為什麼溶液會對個別細胞產生不同的影響？試推測細胞A、B的起始水勢。",
+  );
+  for (const name of ["a", "b"]) {
+    await expect(page.locator(`#compare-psi-${name}`)).toHaveValue("");
+    await expect(
+      page.locator(`#compare-psi-${name} option`).filter({ hasNotText: "?" }),
+    ).toHaveText([">", "<", "="]);
+  }
 });
-test("The extension tests the lower-potential misconception and supports a correct final inference", async ({
+test("The A/B extension preserves symbol predictions and supports a correct final inference", async ({
   page,
 }) => {
   await page.goto("/");
   await page.locator("#extension-button").click();
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await page.locator("#compare-psi-b").selectOption("lower");
   await page.locator("#extension-next-1").click();
   await expect(page.locator("#extension-step-2")).toContainText("−700 kPa");
   await expect(page.locator("#extension-step-2")).not.toContainText("MPa");
-  await page.locator("#extension-hypothesis").selectOption("lower");
-  await page
-    .locator("#extension-reason")
-    .fill(
-      "I am testing whether a lower initial water potential causes shrinking.",
-    );
-  await page.locator("#predict-x").selectOption("none");
-  await page.locator("#predict-y").selectOption("out");
-  await page.locator("#language-button").click();
-  await expect(page.locator("#extension-reason")).toHaveValue(
-    "I am testing whether a lower initial water potential causes shrinking.",
+  await expect(
+    page.locator("#extension-hypothesis, #extension-reason"),
+  ).toHaveCount(0);
+  await expect(page.locator("#extension-step-2")).toContainText(
+    "A TESTABLE HYPOTHESIS",
   );
-  await expect(page.locator("#extension-hypothesis")).toHaveValue("lower");
+  await expect(page.locator("#extension-step-2")).toContainText("Cell A");
+  await expect(page.locator("#extension-step-2")).toContainText("Cell B");
+  await page.locator("#predict-a").selectOption("none");
+  await page.locator("#predict-b").selectOption("out");
+  await page.locator("#language-button").click();
+  await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
+  await expect(page.locator("#compare-psi-b")).toHaveValue("lower");
+  await expect(page.locator("#extension-step-2")).toContainText("可測試的假說");
   await page.locator("#extension-start-test").click();
   await expect(page.locator("#extension-test-result")).toBeVisible();
-  await expect(page.locator("#extension-volume-x")).toHaveText("體積：0.00%");
+  await expect(page.locator("#extension-volume-a")).toHaveText("體積：0.00%");
   await expect(page.locator("#extension-volume-other")).toHaveText(
     "體積：−11.84%",
   );
   await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 Y 失水並萎縮。",
+    "細胞 B 失水並萎縮。",
   );
   await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
     "data-solution-potential",
@@ -74,34 +89,31 @@ test("The extension tests the lower-potential misconception and supports a corre
     "維持不變",
     "高",
     "淨",
-    "離開 Y",
+    "離開 B",
     "減少",
     "沒有淨移動",
   ]);
-  await page.locator("#extension-lower-test").click();
-  await expect(page.locator("#extension-test-result")).toBeVisible();
-  await expect(page.locator("#extension-volume-other")).toHaveText(
-    "體積：+2.02%",
-  );
-  await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 Z 吸水，並未萎縮。",
-  );
+  await expect(
+    page.locator("#extension-lower-test, #extension-prediction-feedback"),
+  ).toHaveCount(0);
   await page.locator("#extension-to-explain").click();
-  await expect(page.locator("#extension-summary-body tr")).toHaveCount(3);
+  await expect(page.locator("#extension-summary-body tr")).toHaveCount(2);
+  await expect(page.locator("#infer-a option").first()).toHaveText("請選擇");
+  await expect(page.locator("#infer-b option").first()).toHaveText("請選擇");
   await expect(
     page.locator("#extension-summary-body tr td:nth-child(2)"),
-  ).toHaveText(["−794", "−700", "−810"]);
+  ).toHaveText(["−794", "−700"]);
   await page.locator('[data-extension-step="1"]').click();
   await expect(page.locator("#extension-step-1")).toBeVisible();
   await page.locator('[data-extension-step="2"]').click();
-  await expect(page.locator("#extension-hypothesis")).toHaveValue("lower");
-  await expect(page.locator("#predict-y")).toHaveValue("out");
+  await expect(page.locator("#compare-psi-b")).toHaveValue("lower");
+  await expect(page.locator("#predict-b")).toHaveValue("out");
   await page.locator('[data-extension-step="3"]').click();
   await expect(page.locator("#extension-result-title")).toHaveText(
-    "細胞 Z 吸水，並未萎縮。",
+    "細胞 B 失水並萎縮。",
   );
   await page.locator('[data-extension-step="4"]').click();
-  await expect(page.locator("#extension-summary-body tr")).toHaveCount(3);
+  await expect(page.locator("#extension-summary-body tr")).toHaveCount(2);
   await page.locator("#infer-a").selectOption("equal");
   await page.locator("#infer-b").selectOption("lower");
   await page.locator("#extension-check").click();
@@ -116,6 +128,15 @@ test("The extension tests the lower-potential misconception and supports a corre
     "true",
   );
   await expect(page.locator("#extension-final-feedback")).toContainText("等滲");
+  await expect(page.locator("#extension-final-feedback")).not.toContainText(
+    "其確切起始水勢仍未知。",
+  );
+  await expect(page.locator("#extension-final-feedback .key-point")).toHaveText(
+    ["相對 細胞A 是等滲的", "相對 細胞B 是高滲的"],
+  );
+  await expect(
+    page.locator("#extension-final-feedback .key-point").first(),
+  ).toHaveCSS("color", "rgb(179, 43, 43)");
   await page.locator("#extension-return").click();
   await expect(page.locator("#core-lab")).toBeVisible();
 });
@@ -133,10 +154,8 @@ test("All four stage buttons support review, keyboard activation and pausing wit
   await page.locator('[data-extension-step="2"]').focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#extension-step-2")).toBeVisible();
-  await page
-    .locator("#extension-reason")
-    .fill("Higher cell water potential should cause water loss.");
-  await page.locator("#extension-hypothesis").selectOption("higher");
+  await page.locator("#predict-a").selectOption("none");
+  await page.locator("#predict-b").selectOption("out");
   await page.locator('[data-extension-step="3"]').click();
   await expect(page.locator("#extension-pause")).toHaveText(
     "Test the predictions",
@@ -169,10 +188,8 @@ test("All four stage buttons support review, keyboard activation and pausing wit
     pausedPsi,
   );
   await page.locator('[data-extension-step="2"]').click();
-  await expect(page.locator("#extension-reason")).toHaveValue(
-    "Higher cell water potential should cause water loss.",
-  );
-  await expect(page.locator("#extension-hypothesis")).toHaveValue("higher");
+  await expect(page.locator("#predict-a")).toHaveValue("none");
+  await expect(page.locator("#predict-b")).toHaveValue("out");
 });
 test("Extension fits a mobile screen and switching activities pauses the core experiment", async ({
   page,
@@ -186,6 +203,12 @@ test("Extension fits a mobile screen and switching activities pauses the core ex
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
+  const photoBox = await page.locator(".micrograph-card").boundingBox();
+  const questionBox = await page
+    .locator("#extension-step-1 .extension-question-card")
+    .boundingBox();
+  expect(questionBox.y).toBeGreaterThanOrEqual(photoBox.y + photoBox.height);
+  expect(questionBox.width).toBeGreaterThan(300);
   await page.locator("#extension-next-1").click();
   expect(
     await page.evaluate(
@@ -206,6 +229,8 @@ test("Extension fits a mobile screen and switching activities pauses the core ex
   ).toBeTruthy();
   await page.locator("#extension-reset").click();
   await expect(page.locator("#extension-step-1")).toBeVisible();
+  await expect(page.locator("#compare-psi-a")).toHaveValue("");
+  await expect(page.locator("#compare-psi-b")).toHaveValue("");
   await page.locator("#core-button").click();
   await expect(page.locator("#status")).toHaveText("Paused");
 });

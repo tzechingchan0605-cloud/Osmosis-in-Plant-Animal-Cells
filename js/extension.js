@@ -14,12 +14,11 @@ export function setupExtension({ t, returnToLab }) {
   root.innerHTML = extensionView;
   const $ = (selector) => root.querySelector(selector);
   let step = 1,
-    otherName = "Y",
     paused = false,
     finished = false,
     testStarted = false;
-  let x = createExtensionCell("X"),
-    other = createExtensionCell("Y");
+  let a = createExtensionCell("A"),
+    other = createExtensionCell("B");
   let results = {},
     lastRender = 0,
     feedbackShown = false,
@@ -41,11 +40,10 @@ export function setupExtension({ t, returnToLab }) {
     visitedSteps.add(number);
     render();
   }
-  function startTest(name) {
+  function startTest() {
     particleEpoch++;
-    otherName = name;
-    x = { ...createExtensionCell("X"), status: "running" };
-    other = { ...createExtensionCell(name), status: "running" };
+    a = { ...createExtensionCell("A"), status: "running" };
+    other = { ...createExtensionCell("B"), status: "running" };
     paused = false;
     finished = false;
     testStarted = true;
@@ -65,11 +63,18 @@ export function setupExtension({ t, returnToLab }) {
     }
     $("#micrograph-image").setAttribute("aria-label", t("micrographAlt"));
     $(".extension-steps").setAttribute("aria-label", t("extensionProgress"));
-    $("#extension-reason").placeholder = t("reasonPlaceholder");
-    $("#extension-test-heading").textContent = t(
-      otherName === "Y" ? "xyTestTitle" : "xzTestTitle",
-    );
-    $("#extension-cell-other").textContent = t("cell" + otherName);
+    for (const name of ["a", "b"]) {
+      const select = $(`#compare-psi-${name}`);
+      for (const [relation, key] of [
+        ["higher", "higherThanSaline"],
+        ["lower", "lowerThanSaline"],
+        ["equal", "equalToSaline"],
+      ]) {
+        select.querySelector(`[value="${relation}"]`).title = t(key);
+      }
+    }
+    $("#extension-test-heading").textContent = t("abTestTitle");
+    $("#extension-cell-other").textContent = t("cellB");
     $("#extension-initial-other").textContent =
       `Ψ₀ = ${other.initialPsi.toFixed(0).replace("-", "−")} kPa`;
     $("#extension-pause").textContent = t(
@@ -82,10 +87,8 @@ export function setupExtension({ t, returnToLab }) {
             : "pauseShort",
     );
     $("#extension-test-result").hidden = !finished;
-    $("#extension-lower-test").hidden = otherName === "Z";
-    $("#extension-to-explain").hidden = otherName !== "Z";
     for (const [name, current] of [
-      ["x", x],
+      ["a", a],
       ["other", other],
     ]) {
       $(`#extension-volume-${name}`).textContent = t("volumeChange", {
@@ -105,13 +108,11 @@ export function setupExtension({ t, returnToLab }) {
       );
     }
     if (finished) {
-      $("#extension-result-title").textContent = t(
-        otherName === "Y" ? "yResultTitle" : "zResultTitle",
-      );
+      $("#extension-result-title").textContent = t("bResultTitle");
       const points = [
-        ["xResult"],
+        ["aResult"],
         [
-          otherName === "Y" ? "yResult" : "zResult",
+          "bResult",
           {
             change: Math.abs((other.volume - 1) * 100).toFixed(2),
           },
@@ -123,28 +124,14 @@ export function setupExtension({ t, returnToLab }) {
           conclusionPoint(key, t, parameters),
         ),
       );
-      const px = $("#predict-x").value,
-        py = $("#predict-y").value;
-      $("#extension-prediction-feedback").textContent =
-        otherName === "Y"
-          ? t(
-              !px && !py
-                ? "noPredictions"
-                : px === "none" && py === "out"
-                  ? "predictionsMatched"
-                  : "predictionsReview",
-            )
-          : $("#extension-hypothesis").value === "lower"
-            ? t("hypothesisReview")
-            : t("relativeTonicity");
     }
     if (step === 4) renderSummary();
     if (feedbackShown) checkExplanation();
   }
   function renderSummary() {
-    $("#extension-review-note").hidden = !!(results.Y && results.Z);
+    $("#extension-review-note").hidden = !!results.B;
     $("#extension-summary-body").replaceChildren(
-      ...["X", "Y", "Z"]
+      ...["A", "B"]
         .filter((name) => results[name])
         .map((name) => {
           const current = results[name],
@@ -198,14 +185,13 @@ export function setupExtension({ t, returnToLab }) {
         textContent: t(correct ? "correctExplanation" : "revisitExplanation"),
       }),
       ...["inferAAnswer", "inferBAnswer", "relativeTonicity"].map((key) =>
-        Object.assign(document.createElement("p"), { textContent: t(key) }),
+        conclusionPoint(key, t, {}, "p"),
       ),
     );
   }
   function reset() {
     step = 1;
     visitedSteps = new Set([1]);
-    otherName = "Y";
     paused = false;
     finished = false;
     testStarted = false;
@@ -213,29 +199,28 @@ export function setupExtension({ t, returnToLab }) {
     animationTime = 0;
     results = {};
     feedbackShown = false;
-    x = createExtensionCell("X");
-    other = createExtensionCell("Y");
+    a = createExtensionCell("A");
+    other = createExtensionCell("B");
     for (const selector of [
-      "#extension-hypothesis",
-      "#predict-x",
-      "#predict-y",
+      "#compare-psi-a",
+      "#compare-psi-b",
+      "#predict-a",
+      "#predict-b",
       "#infer-a",
       "#infer-b",
-      "#extension-reason",
     ])
       $(selector).value = "";
     $("#extension-final-feedback").hidden = true;
     render();
   }
   $("#extension-next-1").addEventListener("click", () => goTo(2));
-  $("#extension-start-test").addEventListener("click", () => startTest("Y"));
-  $("#extension-lower-test").addEventListener("click", () => startTest("Z"));
+  $("#extension-start-test").addEventListener("click", startTest);
   $("#extension-to-explain").addEventListener("click", () => goTo(4));
   $("#extension-check").addEventListener("click", checkExplanation);
   $("#extension-reset").addEventListener("click", reset);
   $("#extension-return").addEventListener("click", returnToLab);
   $("#extension-pause").addEventListener("click", () => {
-    if (!testStarted || finished) startTest(otherName);
+    if (!testStarted || finished) startTest();
     else {
       paused = !paused;
       render();
@@ -255,12 +240,12 @@ export function setupExtension({ t, returnToLab }) {
       if (!paused) animationTime += dt * SIMULATION_SPEED;
       if (testStarted && !paused && !finished) {
         const advance = dt * SIMULATION_SPEED;
-        x = advanceExtensionCell(x, advance);
+        a = advanceExtensionCell(a, advance);
         other = advanceExtensionCell(other, advance);
-        if (x.status === "complete" && other.status === "complete") {
+        if (a.status === "complete" && other.status === "complete") {
           finished = true;
-          results.X = { ...x };
-          results[otherName] = { ...other };
+          results.A = { ...a };
+          results.B = { ...other };
           render();
         } else if (time - lastRender > 0.15) {
           render();
@@ -268,16 +253,14 @@ export function setupExtension({ t, returnToLab }) {
         }
       }
       for (const [selector, current] of [
-        ["#extension-canvas-x", x],
+        ["#extension-canvas-a", a],
         ["#extension-canvas-other", other],
       ]) {
-        const displayVolume =
-          1 + (current.volume - 1) * (current.name === "Z" ? 6 : 1);
         const trial = {
           cell: "animal",
           appearance: "rbc",
           concentration: 0.9,
-          volume: displayVolume,
+          volume: current.volume,
           initialVolume: 1,
           solutionPsi: SALINE_PSI,
           status: current.status,

@@ -255,6 +255,7 @@ export function drawChamber(
       const progress = Math.min(1, (time - chamber.burstTime) / 1.3);
       drawRupturedCell(ctx, geometry, progress);
       canvas.dataset.ruptureProgress = progress.toFixed(3);
+      canvas.dataset.ruptureOpenings = "2";
     }
     if (rbc && !trial.burst && trial.volume < 1.2) {
       ctx.beginPath();
@@ -262,15 +263,26 @@ export function drawChamber(
       ctx.fillStyle = "#f8ded280";
       ctx.fill();
     }
-    if (labels)
+    if (labels) {
+      const rotation = geometry.rotation ?? 0;
+      const released = trial.burst
+        ? Math.min(1, (time - chamber.burstTime) / 1.3)
+        : 0;
+      const sprayX = Math.cos(0.7) * (rx + base * 0.55 * released);
+      const sprayY = Math.sin(0.7) * (ry + base * 0.55 * released);
       callouts.push([
         t(trial.burst ? "cytoplasmReleased" : "cellMembrane"),
         w - 10,
         37,
-        cx + rx * (trial.burst ? 1.12 : 0.8),
-        cy - ry * (trial.burst ? 0.3 : 0.6),
+        trial.burst
+          ? cx + sprayX * Math.cos(rotation) - sprayY * Math.sin(rotation)
+          : cx + rx * 0.8,
+        trial.burst
+          ? cy + sprayX * Math.sin(rotation) + sprayY * Math.cos(rotation)
+          : cy - ry * 0.6,
         "right",
       ]);
+    }
     if (!rbc) {
       drawNucleus(ctx, geometry.nucleus);
       if (labels && !trial.burst) {
@@ -314,13 +326,26 @@ export function drawChamber(
     if (p.type === "water") {
       const flashing =
         !trial.burst && p.contactUntil > chamber.particles.contactClock;
+      const vacuoleIntake =
+        trial.cell === "plant" &&
+        trial.status === "running" &&
+        p.transfer?.kind === "net" &&
+        p.transfer.entering;
       ctx.fillStyle = flashing
         ? "#0b5e83"
-        : p.inside && !trial.burst
-          ? "#3999bba6"
-          : "#459fc27a";
+        : vacuoleIntake
+          ? "#3999bbbb"
+          : p.inside && !trial.burst
+            ? "#3999bba6"
+            : "#459fc27a";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, flashing ? 3.0 : 2.5, 0, Math.PI * 2);
+      ctx.arc(
+        p.x,
+        p.y,
+        vacuoleIntake ? 3.2 : flashing ? 3.0 : 2.5,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     } else if (solute === "salt") {
       ctx.fillStyle = "#c9a057a0";
@@ -342,7 +367,10 @@ export function drawChamber(
   canvas.dataset.cellPotential = cellPsi === null ? "" : String(cellPsi);
   canvas.dataset.solutionPotential = String(trial.solutionPsi);
   canvas.dataset.playbackSpeed = "0.5";
-  if (!trial.burst) delete canvas.dataset.ruptureProgress;
+  if (!trial.burst) {
+    delete canvas.dataset.ruptureProgress;
+    delete canvas.dataset.ruptureOpenings;
+  }
   const number = (value) =>
     (Math.abs(value * potentialScale) < 10 ** -potentialDigits / 2
       ? 0
@@ -367,41 +395,60 @@ export function drawChamber(
     difference > 0 ? "#248146" : difference < 0 ? "#b32b2b" : "#000000";
   const solutionColor =
     difference < 0 ? "#248146" : difference > 0 ? "#b32b2b" : "#000000";
-  const badge = (title, value, x, y, maxWidth, valueColor) => {
-    const fontSize = (maxWidth < 95 ? 9 : 11) / 2;
-    ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
-    ctx.textAlign = "center";
-    const lines = [title, `${number(value)} ${potentialUnit}`];
-    const width = Math.min(
-      maxWidth,
-      Math.max(...lines.map((line) => ctx.measureText(line).width)) + 8,
+  const badge = (
+    title,
+    value,
+    x,
+    y,
+    valueColor,
+    align = "center",
+    maxBottom = Infinity,
+  ) => {
+    const separator = document.documentElement.lang.startsWith("zh")
+      ? "："
+      : ": ";
+    const titleText = `${title}${separator}`;
+    const valueText = `${number(value)}${potentialUnit}`;
+    let fontSize = w < 220 ? 18 : 22;
+    const setFont = () => {
+      ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
+    };
+    setFont();
+    const availableWidth = w - 16;
+    const fullWidth = ctx.measureText(titleText + valueText).width;
+    if (fullWidth + 8 > availableWidth) {
+      fontSize *= (availableWidth - 8) / fullWidth;
+      setFont();
+    }
+    const titleWidth = ctx.measureText(titleText).width;
+    const width = titleWidth + ctx.measureText(valueText).width + 8;
+    const height = fontSize + 8;
+    y = Math.min(y, maxBottom - height);
+    const left = Math.max(
+      8,
+      Math.min(w - width - 8, align === "left" ? x : x - width / 2),
     );
+    ctx.textAlign = "left";
     ctx.fillStyle = "#ffffffdf";
     ctx.beginPath();
-    ctx.roundRect(x - width / 2, y, width, 18, 3);
+    ctx.roundRect(left, y, width, height, 3);
     ctx.fill();
-    lines.forEach((line, i) => {
-      ctx.fillStyle = i === 0 ? "#36586b" : valueColor;
-      ctx.fillText(line, x, y + 7 + i * 7, width - 4);
-    });
+    ctx.fillStyle = "#36586b";
+    ctx.fillText(titleText, left + 4, y + fontSize + 3);
+    ctx.fillStyle = valueColor;
+    ctx.fillText(valueText, left + 4 + titleWidth, y + fontSize + 3);
   };
-  badge(
-    t("solutionPsiShort"),
-    trial.solutionPsi,
-    Math.min(72, w * 0.23),
-    6,
-    w * 0.43,
-    solutionColor,
-  );
+  badge(t("solutionPsiShort"), trial.solutionPsi, 12, 6, solutionColor, "left");
   if (cellPsi !== null) {
     const top = boundaryAt(geometry, -Math.PI / 2).y;
     badge(
       t("cellPsiShort"),
       cellPsi,
       cx,
-      top + 8,
-      Math.min(130, base * 1.3),
+      top - 20,
       cellColor,
+      "center",
+      geometry.vacuole ? geometry.vacuole.y - geometry.vacuole.ry - 2 : top - 3,
     );
   }
 }

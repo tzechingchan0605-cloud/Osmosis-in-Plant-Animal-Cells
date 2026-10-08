@@ -24,9 +24,9 @@ const highlights = {
     wrinkledDescription: ["shrank", "wrinkled"],
     swollenDescription: ["swelled", "equilibrium"],
     lysedDescription: ["swelled", "burst", "cytoplasm"],
-    xResult: ["equally", "unchanged"],
-    yResult: ["HIGHER", "out of Y", "decreased"],
-    zResult: ["LOWER", "into Z", "increased"],
+    aResult: ["equally", "unchanged"],
+    bResult: ["HIGHER", "out of B", "decreased"],
+    relativeTonicity: ["isotonic to cell A", "hypertonic to cell B"],
     finalEquilibriumNote: ["no net movement"],
   },
   zh: {
@@ -46,14 +46,14 @@ const highlights = {
     wrinkledDescription: ["萎縮", "皺褶"],
     swollenDescription: ["膨脹", "平衡"],
     lysedDescription: ["膨脹", "爆裂", "細胞質"],
-    xResult: ["速率相同", "維持不變"],
-    yResult: ["高", "淨", "離開 Y", "減少"],
-    zResult: ["低", "淨", "進入 Z", "增加"],
+    aResult: ["速率相同", "維持不變"],
+    bResult: ["高", "淨", "離開 B", "減少"],
+    relativeTonicity: ["相對 細胞A 是等滲的", "相對 細胞B 是高滲的"],
     finalEquilibriumNote: ["沒有淨移動"],
   },
 };
 
-export function conclusionPoint(key, t, parameters = {}) {
+export function conclusionPoint(key, t, parameters = {}, tag = "li") {
   const language = document.documentElement.lang.startsWith("zh") ? "zh" : "en";
   const text = t(key, parameters);
   const ranges = (highlights[language][key] ?? [])
@@ -63,7 +63,7 @@ export function conclusionPoint(key, t, parameters = {}) {
     }))
     .filter((range) => range.start >= 0)
     .sort((a, b) => a.start - b.start);
-  const point = document.createElement("li");
+  const point = document.createElement(tag);
   let offset = 0;
   for (const { start, term } of ranges) {
     if (start < offset) continue;

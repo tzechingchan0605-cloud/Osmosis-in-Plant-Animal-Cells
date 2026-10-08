@@ -289,6 +289,14 @@ export function cellGeometry(width, height, trial) {
     { x: right - radius - base * 0.13, y: bottom - radius - base * 0.17 },
   ].map((position, index) => {
     const direction = index === 0 ? 1 : -1;
+    const inward = {
+      x: cx - direction * innerW * 0.18,
+      y: cy - direction * innerH * 0.17,
+    };
+    position = {
+      x: position.x * (1 - plasmolysis) + inward.x * plasmolysis,
+      y: position.y * (1 - plasmolysis) + inward.y * plasmolysis,
+    };
     let candidate;
     search: for (const scale of [1, 0.85, 0.7, 0.55]) {
       for (let offset = -4; offset <= 8; offset++) {

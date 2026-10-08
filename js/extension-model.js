@@ -1,7 +1,7 @@
 // The saline value is GIVEN for this extension; it is independent of the
 // sucrose conversion used in the core lab. All water potentials here are kPa.
 export const SALINE_PSI = -794;
-export const EXTENSION_CELLS = { X: -794, Y: -700, Z: -810 };
+export const EXTENSION_CELLS = { A: -794, B: -700 };
 export function extensionDirection(initialPsi) {
   if (Math.abs(initialPsi - SALINE_PSI) < 1e-10) return "none";
   return initialPsi < SALINE_PSI ? "in" : "out";

@@ -228,6 +228,13 @@ test("The starting plant membrane touches the wall, with fixed corners throughou
       Math.abs(areaRatio - volume * (1 - 0.4 * plasmolysis) ** 2) < 1e-10,
     );
     assert.ok(shrunken.vacuole.x > initial.vacuole.x);
+    for (const [index, chloroplast] of shrunken.chloroplasts.entries()) {
+      const original = initial.chloroplasts[index];
+      assert.ok(
+        Math.hypot(chloroplast.x - shrunken.cx, chloroplast.y - shrunken.cy) <
+          Math.hypot(original.x - initial.cx, original.y - initial.cy),
+      );
+    }
     assert.ok(
       Math.abs(shrunken.nucleus.x - shrunken.cx) <
         Math.abs(initial.nucleus.x - initial.cx),
@@ -325,7 +332,21 @@ test("Net transport uses conserved molecules in all directions, then balances at
     const ids = particleSnapshot(particles).water.map((p) => p.id);
     stepParticles(particles, trial, 3);
     trial.status = "running";
-    trial = stepParticles(particles, trial, 25, true);
+    let inward = 0,
+      outward = 0;
+    for (let i = 0; i < 1500; i++) {
+      trial = advanceTrial(trial, 1 / 60);
+      advanceParticles(particles, cellGeometry(360, 320, trial), trial, 1 / 60);
+      if (trial.status === "running") {
+        const current = particleSnapshot(particles);
+        inward += current.transfers.in;
+        outward += current.transfers.out;
+      }
+    }
+    assert.ok(
+      trial.tone === "hypo" ? inward > outward : outward > inward,
+      `${cell} net movement must be visible in the correct direction`,
+    );
     const equilibrium = particleSnapshot(particles);
     assert.equal(trial.status, "complete");
     assert.deepEqual(
@@ -351,6 +372,55 @@ test("Net transport uses conserved molecules in all directions, then balances at
       later.crossings.out - equilibrium.crossings.out,
     );
   }
+});
+
+test("Turgid plant cells show multiple incoming water molecules for several seconds before equilibrium", () => {
+  let trial = createTrial("plant", 0);
+  const particles = createParticles(cellGeometry(360, 320, trial), trial);
+  const ids = particleSnapshot(particles).water.map((p) => p.id);
+  stepParticles(particles, trial, 3);
+  trial.status = "running";
+  let dominantSeconds = 0,
+    largestDifference = 0,
+    peakIncoming = 0,
+    vacuoleArrivals = 0;
+  for (let i = 0; i < 1500; i++) {
+    const incomingIds = particles.molecules
+      .filter((p) => p.transfer?.kind === "net" && p.transfer.entering)
+      .map((p) => p.id);
+    trial = advanceTrial(trial, 1 / 60);
+    const geometry = cellGeometry(360, 320, trial);
+    advanceParticles(particles, geometry, trial, 1 / 60);
+    for (const id of incomingIds) {
+      const p = particles.molecules.find((p) => p.id === id);
+      if (!p.transfer) {
+        assert.ok(insideOrganelle(geometry.vacuole, p.x, p.y));
+        vacuoleArrivals++;
+      }
+    }
+    if (trial.status === "running") {
+      const current = particleSnapshot(particles);
+      if (current.transfers.in > current.transfers.out)
+        dominantSeconds += 1 / 60;
+      largestDifference = Math.max(
+        largestDifference,
+        current.transfers.in - current.transfers.out,
+      );
+      peakIncoming = Math.max(peakIncoming, current.transfers.in);
+    }
+  }
+  assert.ok(dominantSeconds >= 4);
+  assert.ok(largestDifference >= 3);
+  assert.ok(peakIncoming >= 4);
+  assert.ok(vacuoleArrivals >= 4);
+  assert.equal(trial.status, "complete");
+  const final = particleSnapshot(particles);
+  assert.deepEqual(
+    final.water.map((p) => p.id),
+    ids,
+  );
+  assert.equal(final.transfers.in, final.transfers.out);
+  assert.ok(final.transfers.in <= 2);
 });
 
 test("Water and sucrose enter the wall–membrane space, while solute cannot cross the membrane", () => {

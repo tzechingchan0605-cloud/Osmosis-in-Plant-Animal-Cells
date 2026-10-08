@@ -67,6 +67,11 @@ test("Pure water ruptures the animal cell; mild hypotonic solution does not", ()
   assert.equal(burst.volume, BURST_VOLUME);
   assert.equal(burst.burst, true);
   assert.equal(outcome(burst), "lysed");
+  assert.equal(
+    burst.solutionVolume,
+    burst.initialVolume + burst.initialSolutionVolume,
+  );
+  assert.equal(burst.solutionPsi, CELL_PSI / burst.solutionVolume);
   const mild = finish(createTrial("animal", 8));
   assert.ok(mild.volume > 1 && mild.volume < BURST_VOLUME);
   assert.equal(mild.burst, false);
@@ -116,6 +121,54 @@ test("During net movement, changing volume moves the cell potential toward the s
       }
     }
 });
+test("Both cell types change the finite bath potential while conserving water and external sucrose", () => {
+  for (const cell of ["plant", "animal"]) {
+    for (const concentration of [8, 20]) {
+      const initial = createTrial(cell, concentration);
+      let trial = { ...initial, status: "running" };
+      for (let i = 0; i < 1800 && trial.status === "running"; i++) {
+        const previous = trial;
+        trial = advanceTrial(trial, 1 / 60);
+        assert.equal(trial.burst, false);
+        assert.ok(Math.abs(trial.volume + trial.solutionVolume - 5) < 1e-10);
+        assert.ok(
+          Math.abs(
+            trial.solutionConcentration * trial.solutionVolume -
+              concentration * initial.solutionVolume,
+          ) < 1e-10,
+        );
+        assert.ok(
+          Math.abs(
+            concentrationToPotential(trial.solutionConcentration) -
+              trial.solutionPsi,
+          ) < 1e-9,
+        );
+        if (trial.tone === "hyper") {
+          assert.ok(trial.solutionPsi >= previous.solutionPsi);
+          assert.ok(
+            trial.solutionConcentration <= previous.solutionConcentration,
+          );
+        } else {
+          assert.ok(trial.solutionPsi <= previous.solutionPsi);
+          assert.ok(
+            trial.solutionConcentration >= previous.solutionConcentration,
+          );
+        }
+      }
+      assert.equal(trial.status, "complete");
+      assert.ok(
+        Math.abs(cellPotential(cell, trial.volume) - trial.solutionPsi) < 1e-7,
+      );
+      assert.equal(trial.initialSolutionPsi, initial.solutionPsi);
+      assert.notEqual(trial.solutionPsi, initial.solutionPsi);
+      assert.equal(
+        initial.solutionPsi,
+        concentrationToPotential(concentration),
+      );
+      assert.equal(initial.volume, 1);
+    }
+  }
+});
 test("Paused trials do not advance, and invalid settings are rejected", () => {
   const paused = { ...createTrial("plant", 5), status: "paused" };
   assert.deepEqual(advanceTrial(paused, 5), paused);
@@ -129,11 +182,10 @@ test("Every translation has a matching English and Traditional Chinese entry", (
     Object.keys(translations.zh).sort(),
   );
 });
-test("Extension X is unchanged, higher-potential Y shrinks, lower-potential Z swells", () => {
+test("Extension A is unchanged and higher-potential B shrinks", () => {
   for (const [name, direction, expectedRatio] of [
-    ["X", "none", 1],
-    ["Y", "out", 700 / 794],
-    ["Z", "in", 810 / 794],
+    ["A", "none", 1],
+    ["B", "out", 700 / 794],
   ]) {
     let cell = { ...createExtensionCell(name), status: "running" };
     assert.equal(cell.direction, direction);

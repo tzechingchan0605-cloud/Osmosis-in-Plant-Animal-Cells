@@ -290,7 +290,7 @@ function renderConclusion() {
     [
       state.tone + "Relation",
       {
-        solution: format(state.solutionPsi),
+        solution: format(state.initialSolutionPsi),
         cell: format(state.initialPsi),
       },
     ],
@@ -337,16 +337,24 @@ function renderNotebook() {
       const values = [
         String(index + 1).padStart(2, "0"),
         t(trial.isRecovery ? "notebookRecovery" : trial.cell),
-        `${format(trial.concentration, 2)}% · ${t(trial.tone)}`,
-        `${format(trial.solutionPsi)} kPa`,
+        Number.isFinite(trial.initialPsi)
+          ? `${format(trial.initialPsi)} kPa`
+          : "—",
+        `${format(trial.concentration, 2)}% · `,
+        `${format(trial.initialSolutionPsi ?? trial.solutionPsi)} kPa`,
         t(movementKey(trial)),
         t(outcome(trial)),
       ];
-      row.replaceChildren(
-        ...values.map((value) =>
-          Object.assign(document.createElement("td"), { textContent: value }),
-        ),
+      const cells = values.map((value) =>
+        Object.assign(document.createElement("td"), { textContent: value }),
       );
+      const tone = document.createElement("strong");
+      tone.className = `notebook-tone-${trial.tone}`;
+      tone.textContent = t(trial.tone);
+      cells[3].append(tone);
+      for (const index of [4, 5])
+        cells[index].classList.add(`notebook-tone-${trial.tone}`);
+      row.replaceChildren(...cells);
       return row;
     }),
   );

@@ -867,6 +867,17 @@ td {
 tr:last-child td {
   border: 0;
 }
+.notebook-tone-hypo {
+  color: #248146;
+  font-weight: 650;
+}
+.notebook-tone-hyper {
+  color: #b32b2b;
+  font-weight: 650;
+}
+.notebook-tone-iso {
+  color: #000;
+}
 td:first-child {
   color: #a0aa93;
 }
@@ -1526,11 +1537,28 @@ summary {
   margin-top: 21px;
   max-width: 100%;
 }
-.hypothesis-grid {
+.hypothesis-test-card {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.potential-comparisons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px;
-  align-items: start;
+  gap: 12px;
+  margin-top: 18px;
+}
+.potential-comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+#extension-study .potential-comparison select {
+  padding: 10px 5px;
+  font-size: 16px;
+  font-weight: 650;
 }
 .extension-input-label {
   display: block;
@@ -1871,8 +1899,7 @@ summary {
   }
 }
 @media (max-width: 800px) {
-  .extension-observe-grid,
-  .hypothesis-grid {
+  .extension-observe-grid {
     grid-template-columns: 1fr;
   }
   .extension-heading-row {
