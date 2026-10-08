@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#173f39" />
+    <meta
+      name="description"
+      content="Explore osmosis in plant and animal cells. An interactive English and Traditional Chinese biology lab for F.4 students."
+    />
+    <title>Osmosis Lab · 滲透實驗室</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./js/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Osmosis Lab home">
+        <span class="brand-symbol" aria-hidden="true"
+          ><svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="11" />
+            <circle cx="18" cy="18" r="5" />
+            <circle cx="28" cy="10" r="4" /></svg
+        ></span>
+        <span data-i18n="brand">Osmosis Lab</span
+        ><span class="brand-tag" data-i18n="labTag">BIOLOGY, MADE VISIBLE</span>
+      </a>
+      <nav class="header-actions" aria-label="Lab tools">
+        <button class="text-button" id="help-button">
+          <span aria-hidden="true">ⓘ</span>
+          <span data-i18n="guide">How it works</span>
+        </button>
+        <button
+          class="language-button"
+          id="language-button"
+          lang="zh-Hant"
+          aria-label="Switch to Traditional Chinese"
+        >
+          繁體中文 <span aria-hidden="true">⇄</span>
+        </button>
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">
+            <span class="small-dot"></span
+            ><span data-i18n="eyebrow">F.4 BIOLOGY · INTERACTIVE LAB</span>
+          </div>
+          <h1 data-i18n="headline">Follow the water.</h1>
+          <p data-i18n="subtitle">
+            One solution. Two kinds of cell. Discover what changes — and why.
+          </p>
+        </div>
+        <div class="intro-note">
+          <span class="note-icon" aria-hidden="true">↗</span
+          ><span data-i18n="introNote"
+            >Choose. Predict. Observe.<br />Let the molecules tell the
+            story.</span
+          >
+        </div>
+      </section>
+
+      <nav class="activity-nav" aria-label="Learning activities">
+        <button id="core-button" aria-pressed="true">
+          <span data-i18n="coreLab">Osmosis lab</span></button
+        ><button id="extension-button" aria-pressed="false">
+          <span data-i18n="extensionTab">Extension study</span
+          ><span class="extension-badge" data-i18n="extensionBadge"
+            >GO FURTHER</span
+          >
+        </button>
+      </nav>
+      <section id="core-lab">
+        <div class="lab-layout">
+          <aside class="control-card" aria-label="Experiment controls">
+            <div class="section-heading">
+              <span class="step-number">01</span>
+              <h2 data-i18n="setup">Set up your experiment</h2>
+            </div>
+            <fieldset class="cell-fieldset">
+              <legend data-i18n="chooseCell">Choose a cell</legend>
+              <div class="cell-picker">
+                <button
+                  class="cell-button selected"
+                  data-cell="plant"
+                  aria-pressed="true"
+                >
+                  <svg
+                    class="cell-icon plant-icon"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <rect x="9" y="5" width="30" height="38" rx="8" />
+                    <rect x="13" y="9" width="22" height="30" rx="6" />
+                    <ellipse cx="25" cy="24" rx="7" ry="12" />
+                    <circle cx="15" cy="30" r="3" /></svg
+                  ><span data-i18n="plant">Plant cell</span
+                  ><small data-i18n="plantDetail">With a cell wall</small>
+                </button>
+                <button
+                  class="cell-button"
+                  data-cell="animal"
+                  aria-pressed="false"
+                >
+                  <svg
+                    class="cell-icon animal-icon"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <ellipse cx="24" cy="24" rx="18" ry="15" />
+                    <ellipse cx="24" cy="24" rx="9" ry="6" /></svg
+                  ><span data-i18n="animal">Animal cell</span
+                  ><small data-i18n="animalDetail">Red blood cell</small>
+                </button>
+              </div>
+            </fieldset>
+            <div class="fixed-potential">
+              <span
+                ><span class="tiny-label" data-i18n="startingPsi"
+                  >STARTING CELL WATER POTENTIAL</span
+                ><strong id="initial-potential"
+                  >−500 <small>kPa</small></strong
+                ></span
+              ><span class="fixed-pill" data-i18n="presetValue"
+                >MODEL VALUE</span
+              >
+            </div>
+            <div class="control-divider"></div>
+            <fieldset class="solution-fieldset">
+              <legend data-i18n="chooseSolution">
+                Adjust the sucrose solution
+              </legend>
+              <p class="field-hint" data-i18n="linkedInputs">
+                Change either value. The other updates automatically.
+              </p>
+              <label
+                class="input-label"
+                for="concentration"
+                data-i18n="concentration"
+                >Sucrose concentration</label
+              >
+              <div class="number-field">
+                <input
+                  id="concentration"
+                  type="number"
+                  min="0"
+                  max="20"
+                  step="any"
+                  value="5"
+                  inputmode="decimal"
+                  aria-describedby="concentration-detail input-error"
+                /><span>%</span>
+              </div>
+              <input
+                id="concentration-range"
+                type="range"
+                min="0"
+                max="20"
+                step="0.1"
+                value="5"
+                aria-label="Sucrose concentration slider"
+              />
+              <div class="range-labels" id="concentration-detail">
+                <span data-i18n="pureWater">0% · Pure water</span
+                ><span>20%</span>
+              </div>
+              <label
+                class="input-label potential-label"
+                for="potential"
+                data-i18n="solutionPsi"
+                >Solution water potential (Ψ)</label
+              >
+              <div class="number-field">
+                <input
+                  id="potential"
+                  type="number"
+                  min="-1448.3"
+                  max="0"
+                  step="any"
+                  inputmode="decimal"
+                  aria-describedby="input-error"
+                /><span>kPa</span
+                ><span class="linked-mark" aria-hidden="true">↔</span>
+              </div>
+              <p class="input-error" id="input-error" role="alert" hidden></p>
+              <div class="preset-heading" data-i18n="quickSet">QUICK SET</div>
+              <div class="preset-buttons">
+                <button data-preset="water" data-i18n="distilled">
+                  Distilled water</button
+                ><button data-preset="equal" data-i18n="matchCell">
+                  Match cell Ψ</button
+                ><button data-preset="strong" data-i18n="strongSolution">
+                  20% sucrose
+                </button>
+              </div>
+              <p class="model-caption" data-i18n="conversionNote">
+                At 25°C · approximate conversion · % w/v
+              </p>
+            </fieldset>
+            <div class="control-divider"></div>
+            <fieldset class="prediction-fieldset">
+              <legend data-i18n="prediction">Your prediction</legend>
+              <p class="field-hint" data-i18n="predictionHint">
+                Which way will water move overall?
+              </p>
+              <div class="prediction-buttons">
+                <button data-prediction="in" aria-pressed="false">
+                  <span aria-hidden="true">↘</span
+                  ><span data-i18n="intoCell">Into</span></button
+                ><button data-prediction="none" aria-pressed="false">
+                  <span aria-hidden="true">⇄</span
+                  ><span data-i18n="neither">Neither</span></button
+                ><button data-prediction="out" aria-pressed="false">
+                  <span aria-hidden="true">↗</span
+                  ><span data-i18n="outCell">Out of</span>
+                </button>
+              </div>
+            </fieldset>
+            <button id="start-button" class="primary-button">
+              <span id="start-symbol" aria-hidden="true">▶</span
+              ><span id="start-label" data-i18n="start">Start simulation</span>
+            </button>
+            <button id="reset-button" class="reset-button">
+              <span aria-hidden="true">↺</span>
+              <span data-i18n="reset">Reset cell</span>
+            </button>
+          </aside>
+
+          <section
+            class="observation-column"
+            aria-label="Cell observation and results"
+          >
+            <div class="observation-card">
+              <div class="observation-header">
+                <div class="section-heading">
+                  <span class="step-number">02</span>
+                  <h2 data-i18n="observe">Observe the change</h2>
+                </div>
+                <span class="status-pill" id="status" role="status"
+                  >Ready to explore</span
+                >
+              </div>
+              <div class="chamber-toolbar">
+                <div class="particle-key">
+                  <span
+                    ><i class="water-dot"></i
+                    ><span data-i18n="waterMolecule">Water molecule</span></span
+                  ><span
+                    ><i class="sucrose-dot"></i
+                    ><span data-i18n="sucroseMolecule"
+                      >Sucrose molecule</span
+                    ></span
+                  >
+                </div>
+                <label class="labels-toggle"
+                  ><input id="show-labels" type="checkbox" checked /><span
+                    data-i18n="labels"
+                    >Labels</span
+                  ></label
+                >
+              </div>
+              <div class="chambers">
+                <div class="chamber before-chamber">
+                  <div class="chamber-title">
+                    <span class="chamber-tag" data-i18n="before">BEFORE</span
+                    ><span class="chamber-description" data-i18n="startingState"
+                      >Starting state</span
+                    >
+                  </div>
+                  <canvas
+                    id="before-canvas"
+                    role="img"
+                    aria-label="Cell before osmosis"
+                  ></canvas>
+                  <div class="chamber-metric">
+                    <span data-i18n="cellVolume">Relative cell volume</span
+                    ><strong id="before-volume">1.00×</strong>
+                  </div>
+                </div>
+                <div class="chamber after-chamber">
+                  <div class="chamber-title">
+                    <span
+                      class="chamber-tag live-tag"
+                      id="after-tag"
+                      data-i18n="after"
+                      >AFTER</span
+                    ><span
+                      class="chamber-description"
+                      id="after-description"
+                      data-i18n="awaitingStart"
+                      >Waiting for your experiment</span
+                    >
+                  </div>
+                  <canvas
+                    id="after-canvas"
+                    role="img"
+                    aria-label="Cell during and after osmosis"
+                  ></canvas>
+                  <div class="chamber-metric">
+                    <span data-i18n="cellVolume">Relative cell volume</span
+                    ><strong id="after-volume">1.00×</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="flow-strip">
+                <div>
+                  <span
+                    class="flow-indicator"
+                    id="flow-symbol"
+                    aria-hidden="true"
+                    >⇄</span
+                  >
+                  <div>
+                    <span class="tiny-label" data-i18n="netMovement"
+                      >NET WATER MOVEMENT</span
+                    ><strong id="flow-text" data-i18n="pressStart"
+                      >Press Start to observe</strong
+                    >
+                  </div>
+                </div>
+                <label class="speed-control"
+                  ><span data-i18n="animationSpeed">Animation speed</span
+                  ><select id="speed" aria-label="Animation speed">
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                  </select></label
+                >
+              </div>
+              <div class="chamber-footnote">
+                <span data-i18n="schematic"
+                  >Particles and timing are schematic. Both views use the same
+                  scale.</span
+                ><span id="elapsed" aria-label="Animation progress">0:00</span>
+              </div>
+            </div>
+            <div id="result-placeholder" class="result-placeholder">
+              <span class="placeholder-icon" aria-hidden="true">✧</span>
+              <div>
+                <h3 data-i18n="lookCloser">
+                  Look closely. What do you notice?
+                </h3>
+                <p data-i18n="placeholder">
+                  Run an experiment to reveal the explanation behind the change.
+                </p>
+              </div>
+            </div>
+            <section
+              class="result-card"
+              id="result-card"
+              hidden
+              aria-labelledby="result-heading"
+              aria-live="polite"
+            >
+              <div class="result-top">
+                <div>
+                  <div class="eyebrow" data-i18n="explanation">
+                    YOUR OBSERVATION, EXPLAINED
+                  </div>
+                  <h3 id="result-heading"></h3>
+                </div>
+                <span class="result-icon" id="result-icon" aria-hidden="true"
+                  >↘</span
+                >
+              </div>
+              <ul id="conclusion"></ul>
+              <p
+                id="prediction-feedback"
+                class="prediction-feedback"
+                hidden
+              ></p>
+              <button class="recovery-button" id="recovery-button" hidden>
+                <span aria-hidden="true">↺</span>
+                <span data-i18n="recover">Replace with distilled water</span
+                ><span aria-hidden="true">→</span>
+              </button>
+              <p
+                class="recovery-note"
+                id="recovery-note"
+                hidden
+                data-i18n="recoveryNote"
+              >
+                Keep this plant cell and watch it recover — just like the onion
+                experiment.
+              </p>
+            </section>
+          </section>
+        </div>
+
+        <section class="notebook-card" aria-labelledby="notebook-heading">
+          <div class="notebook-header">
+            <div>
+              <div class="eyebrow" data-i18n="compareEyebrow">
+                CHANGE ONE THING. COMPARE WHAT HAPPENS.
+              </div>
+              <h2 id="notebook-heading" data-i18n="notebook">
+                Your lab notebook
+              </h2>
+            </div>
+            <button
+              id="clear-trials"
+              class="text-button"
+              data-i18n="clearTrials"
+              disabled
+            >
+              Clear trials
+            </button>
+          </div>
+          <p id="notebook-empty" data-i18n="emptyNotebook">
+            Completed experiments will appear here. Try the same solution with
+            both cells.
+          </p>
+          <div class="table-scroll" id="notebook-table-wrap" hidden>
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="trial">Trial</th>
+                  <th data-i18n="cell">Cell</th>
+                  <th data-i18n="solution">Solution</th>
+                  <th data-i18n="solutionPsiShort">Solution Ψ</th>
+                  <th data-i18n="netMovementShort">Net movement</th>
+                  <th data-i18n="observation">Observation</th>
+                </tr>
+              </thead>
+              <tbody id="trials-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+      <section
+        id="extension-study"
+        hidden
+        aria-labelledby="extension-heading"
+      ></section>
+      <footer>
+        <span data-i18n="footer">Made for curious minds · F.4 Biology</span
+        ><span data-i18n="textbookRef"
+          >Textbook reference: Chapter 4, §4.2B · pp. 4-14–4-21</span
+        >
+      </footer>
+    </main>
+    <dialog id="guide-dialog" aria-labelledby="guide-heading">
+      <button class="dialog-close" id="close-guide" aria-label="Close guide">
+        ×
+      </button>
+      <div class="eyebrow" data-i18n="guideEyebrow">
+        A LITTLE SCIENCE BEFORE YOU START
+      </div>
+      <h2 id="guide-heading" data-i18n="guideHeading">How osmosis works</h2>
+      <p class="definition" data-i18n="definition">
+        Osmosis is the net movement of water molecules from a region of higher
+        water potential to a region of lower water potential across a
+        differentially permeable membrane.
+      </p>
+      <div class="guide-points">
+        <h3 data-i18n="remember">Things to remember</h3>
+        <p data-i18n="guideWater">
+          Pure water has a water potential of 0. Adding sucrose makes it more
+          negative. −200 kPa is higher than −500 kPa.
+        </p>
+        <p data-i18n="guideBoth">
+          Water moves in both directions. At equal water potential, the rates
+          are equal: there is no net movement.
+        </p>
+        <p data-i18n="guideWall">
+          A plant cell wall resists expansion, so a plant cell becomes turgid
+          rather than bursting. The wall is permeable; the cell membrane is
+          differentially permeable.
+        </p>
+        <p data-i18n="guideSugar">
+          In this model, sucrose does not cross the cell membrane. The
+          surrounding solution is a large reservoir, so its concentration stays
+          constant.
+        </p>
+      </div>
+      <details>
+        <summary data-i18n="teacherNotes">Model & teacher notes</summary>
+        <div class="teacher-notes">
+          <p data-i18n="guidePreset">
+            Both cells start at −500 kPa for comparison. This is an illustrative
+            model value, not a measured value for all plant cells or red blood
+            cells. Every fresh trial starts with the same cell state.
+          </p>
+          <p data-i18n="guideConversion">
+            Concentration is % w/v (g sucrose per 100 mL solution). At 25°C, an
+            ideal-solution approximation gives Ψ ≈ −72.4 × concentration (%)
+            kPa. This is a teaching approximation, especially at higher
+            concentrations, and is not a conversion table from the textbook.
+          </p>
+          <p data-i18n="guidePressure">
+            The cell contains a fixed amount of impermeant solute. Its water
+            potential changes as water enters or leaves. Plant-cell pressure
+            rises during expansion and stops net water entry at equilibrium.
+            Animation speed is illustrative, not a real biological time scale.
+          </p>
+          <p data-i18n="guideOutcomes">
+            Small differences can produce only slight changes. Mildly hypotonic
+            red blood cells may swell without bursting; slight water loss can
+            leave a plant cell flaccid without visible plasmolysis. The outcome
+            follows the final volume.
+          </p>
+          <p data-i18n="guideEquality">
+            Values within 1 kPa are treated as equal to accommodate rounded
+            inputs. Tonicity labels describe the solution relative to the cell
+            at the beginning of that trial, even after equilibrium is reached.
+          </p>
+          <p data-i18n="guideRecovery">
+            Replacing the solution with distilled water keeps the plant cell's
+            current contents and volume. Reset restores the original cell. The
+            notebook keeps up to 12 trials in this browser session.
+          </p>
+          <p data-i18n="guideSalt">
+            The textbook’s 0.9% isotonic solution is sodium chloride, not
+            sucrose. Haemolysis specifically means red blood cells bursting and
+            releasing haemoglobin.
+          </p>
+          <p data-i18n="guideSources">
+            Terminology and learning sequence: supplied English and Chinese
+            Chapter 4 textbooks, pp. 4-14–4-21; answer guidance on p. 4-37.
+            Diagrams here are newly drawn schematics.
+          </p>
+        </div>
+      </details>
+      <button id="guide-done" class="primary-button" data-i18n="letsExplore">
+        Let’s explore
+      </button>
+    </dialog>
+  </body>
+</html>
