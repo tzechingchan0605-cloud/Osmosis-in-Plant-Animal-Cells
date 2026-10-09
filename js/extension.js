@@ -331,6 +331,8 @@ export function setupExtension({ t, returnToLab }) {
           volume: current.volume,
           initialVolume: 1,
           solutionPsi: SALINE_PSI,
+          initialSolutionPsi: SALINE_PSI,
+          initialPsi: current.initialPsi,
           status: current.status,
           burst: false,
           tone:

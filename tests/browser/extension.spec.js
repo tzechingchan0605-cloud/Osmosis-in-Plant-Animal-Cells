@@ -106,6 +106,17 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
   await expect(page.locator("#extension-summary-body tr")).toHaveCount(2);
   await expect(page.locator("#infer-a option").first()).toHaveText("請選擇");
   await expect(page.locator("#infer-b option").first()).toHaveText("請選擇");
+  for (const name of ["a", "b"]) {
+    await expect(page.locator(`label[for="infer-${name}"]`)).toHaveCSS(
+      "color",
+      "rgb(0, 0, 0)",
+    );
+    await expect(page.locator(`label[for="infer-${name}"]`)).toHaveCSS(
+      "font-weight",
+      "700",
+    );
+    await expect(page.locator(`#infer-${name}`)).toHaveCSS("font-size", "16px");
+  }
   await expect(
     page.locator("#extension-summary-body tr td:nth-child(2)"),
   ).toHaveText(["−794", "−700"]);

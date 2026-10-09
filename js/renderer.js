@@ -226,7 +226,9 @@ export function drawChamber(
         wallPoint.y,
         "right",
       ]);
-      const membrane = boundaryAt(geometry, Math.PI * 0.72);
+      // Point to the left side above the attached corner, where the membrane
+      // visibly retracts during plasmolysis. Follow its current outline.
+      const membrane = boundaryAt(geometry, Math.PI * 0.77);
       callouts.push([t("cellMembrane"), 9, h - 49, membrane.x, membrane.y]);
       callouts.push([
         t("vacuole"),
@@ -327,14 +329,18 @@ export function drawChamber(
     if (p.type === "water") {
       const flashing =
         !trial.burst && p.contactUntil > chamber.particles.contactClock;
-      const vacuoleIntake =
-        trial.cell === "plant" &&
+      const prominentTransfer =
         trial.status === "running" &&
-        p.transfer?.kind === "net" &&
-        p.transfer.entering;
+        p.transfer &&
+        ((trial.cell === "plant" &&
+          p.transfer.kind === "net" &&
+          p.transfer.entering) ||
+          (trial.cell === "animal" &&
+            ((trial.tone === "hyper" && !p.transfer.entering) ||
+              (trial.tone === "hypo" && p.transfer.entering))));
       ctx.fillStyle = flashing
         ? "#0b5e83"
-        : vacuoleIntake
+        : prominentTransfer
           ? "#2993b8"
           : p.inside && !trial.burst
             ? "#3999bba6"

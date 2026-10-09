@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 import { cellGeometry, boundaryAt, containsPoint } from "../js/geometry.js";
 import { cytoplasmDots, insideOrganelle } from "../js/cell-details.js";
 import {
+  createExtensionCell,
+  advanceExtensionCell,
+  SALINE_PSI,
+} from "../js/extension-model.js";
+import {
   createParticles,
   advanceParticles,
   particleSnapshot,
@@ -469,4 +474,128 @@ test("Paused particle positions are stable; isotonic and recovery trials keep th
   );
   assert.ok(recovered.inside > recovery.initialInside);
   assert.ok(trial.volume > 1);
+});
+
+test("Shrinking animal cells visibly release a sustained group of existing water molecules before equilibrium", () => {
+  let trial = createTrial("animal", 20);
+  const particles = createParticles(cellGeometry(360, 320, trial), trial);
+  const ids = particleSnapshot(particles).water.map((p) => p.id);
+  stepParticles(particles, trial, 3);
+  trial.status = "running";
+  let dominantSeconds = 0,
+    peakOutgoing = 0,
+    largestDifference = 0;
+  const outwardQuadrants = new Set();
+  for (let i = 0; i < 1500; i++) {
+    trial = advanceTrial(trial, 1 / 60);
+    advanceParticles(particles, cellGeometry(360, 320, trial), trial, 1 / 60);
+    if (trial.status !== "running") continue;
+    const current = particleSnapshot(particles),
+      difference = current.transfers.out - current.transfers.in;
+    if (difference >= 4) dominantSeconds += 1 / 60;
+    peakOutgoing = Math.max(peakOutgoing, current.transfers.out);
+    largestDifference = Math.max(largestDifference, difference);
+    for (const p of particles.molecules)
+      if (p.transfer?.kind === "net" && !p.transfer.entering) {
+        outwardQuadrants.add(
+          Math.floor(
+            ((p.transfer.angle + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 2),
+          ),
+        );
+      }
+  }
+  assert.ok(
+    dominantSeconds >= 4,
+    `Only ${dominantSeconds} seconds of clear outward dominance`,
+  );
+  assert.ok(peakOutgoing >= 8);
+  assert.ok(largestDifference >= 7);
+  assert.equal(outwardQuadrants.size, 4);
+  assert.equal(trial.status, "complete");
+  const final = particleSnapshot(particles);
+  assert.deepEqual(
+    final.water.map((p) => p.id),
+    ids,
+  );
+  assert.equal(
+    final.inside,
+    Math.round(particles.initialInside * trial.volume),
+  );
+  assert.equal(
+    final.crossings.out - final.crossings.in,
+    particles.initialInside - final.inside,
+  );
+  assert.equal(final.transfers.in, final.transfers.out);
+  assert.ok(final.transfers.out <= 2);
+});
+
+test("Shrinking and swelling extension RBCs show sustained net movement while conserving their molecules", () => {
+  for (const [relation, tone, direction, expectedPeak] of [
+    ["higher", "hyper", "out", 5],
+    ["lower", "hypo", "in", 6],
+  ]) {
+    let cell = createExtensionCell("B", relation);
+    const trialFor = (current) => ({
+      cell: "animal",
+      appearance: "rbc",
+      concentration: 0.9,
+      initialVolume: 1,
+      volume: current.volume,
+      initialPsi: current.initialPsi,
+      initialSolutionPsi: SALINE_PSI,
+      solutionPsi: SALINE_PSI,
+      status: current.status,
+      tone,
+      burst: false,
+    });
+    let trial = trialFor(cell);
+    const particles = createParticles(
+      cellGeometry(360, 320, trial),
+      trial,
+      "salt",
+    );
+    const ids = particleSnapshot(particles).water.map((p) => p.id);
+    stepParticles(particles, trial, 3);
+    cell.status = "running";
+    let dominantSeconds = 0,
+      peakMovement = 0;
+    for (let i = 0; i < 1500; i++) {
+      cell = advanceExtensionCell(cell, 1 / 60);
+      trial = trialFor(cell);
+      advanceParticles(particles, cellGeometry(360, 320, trial), trial, 1 / 60);
+      const current = particleSnapshot(particles);
+      if (cell.status === "running") {
+        const net =
+          direction === "out"
+            ? current.transfers.out - current.transfers.in
+            : current.transfers.in - current.transfers.out;
+        if (net >= 2) dominantSeconds += 1 / 60;
+        peakMovement = Math.max(peakMovement, current.transfers[direction]);
+      }
+    }
+    assert.ok(
+      dominantSeconds >= 4,
+      `${relation}: only ${dominantSeconds} seconds of net direction dominance`,
+    );
+    assert.ok(
+      peakMovement >= expectedPeak,
+      `${relation}: peak movement ${peakMovement}`,
+    );
+    assert.equal(cell.status, "complete");
+    const final = particleSnapshot(particles);
+    assert.deepEqual(
+      final.water.map((p) => p.id),
+      ids,
+    );
+    assert.equal(
+      final.inside,
+      Math.round(particles.initialInside * cell.volume),
+    );
+    assert.equal(
+      final.crossings.out - final.crossings.in,
+      particles.initialInside - final.inside,
+    );
+    assert.equal(final.transfers.in, final.transfers.out);
+    assert.ok(final.transfers.out <= 2);
+  }
 });

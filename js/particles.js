@@ -114,6 +114,7 @@ function launch(
   geometry,
   duration = 1.7,
   intoVacuole = false,
+  animalTransfer = false,
 ) {
   const angle = Math.atan2(p.y - geometry.cy, p.x - geometry.cx);
   const edge = boundaryAt(geometry, angle);
@@ -134,6 +135,7 @@ function launch(
     elapsed: 0,
     crossed: false,
     intoVacuole,
+    animalTransfer,
     distance,
     startDistance: Math.hypot(p.x - geometry.cx, p.y - geometry.cy),
     startFraction:
@@ -404,6 +406,7 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
     );
     const difference = target - projectedInside(state);
     const changing = trial.status === "running" && trial.tone !== "iso";
+    const changingRbc = changing && trial.appearance === "rbc";
     if (!changing) {
       const pairIds = [
         ...new Set(
@@ -425,24 +428,38 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
       const p = choose(state, entering, state.sequence++ * GOLDEN_ANGLE);
       if (!p) break;
       const intoVacuole = entering && trial.cell === "plant";
+      const animalTransfer = trial.cell === "animal";
       const duration =
-        intoVacuole && changing
+        (intoVacuole || animalTransfer) && changing
           ? Math.max(
-              1.7,
+              changingRbc ? 5.5 : 1.7,
               Math.min(
                 5.5,
-                Math.abs(trial.initialPsi - trial.initialSolutionPsi) / 130,
+                Math.abs(
+                  (trial.initialPsi ?? 0) - (trial.initialSolutionPsi ?? 0),
+                ) / 130,
               ),
             )
           : 1.7;
-      launch(state, p, entering, geometry, duration, intoVacuole);
+      launch(
+        state,
+        p,
+        entering,
+        geometry,
+        duration,
+        intoVacuole,
+        animalTransfer,
+      );
     }
     state.pairTimer -= dt;
     const balancedCount =
       state.molecules.filter((p) => p.transfer?.kind === "balanced").length / 2;
-    // A single simultaneous counterflow pair keeps the slower direction
-    // visible, while additional real transfers make net osmosis stand out.
-    const pairLimit = changing ? 1 : MAX_BALANCED_PAIRS;
+    // Matched counterflow keeps both directions visible, while additional
+    // real transfers make the net direction stand out.
+    // Mild RBC volume changes transfer only a few dots overall. More matched
+    // exchanges make both directions visible, with additional net transport.
+    // Their paired crossings preserve the cell's actual water-dot loss.
+    const pairLimit = changingRbc ? 3 : changing ? 1 : MAX_BALANCED_PAIRS;
     if (state.pairTimer <= 0 && balancedCount < pairLimit) {
       const angle = state.sequence++ * GOLDEN_ANGLE;
       launchBalancedPair(
@@ -479,7 +496,8 @@ export function advanceParticles(state, geometry, trial, dt, contactDt = dt) {
     transfer.elapsed += dt;
     const progress = Math.min(1, transfer.elapsed / transfer.duration);
     const edge = boundaryAt(geometry, transfer.angle);
-    const crossingFraction = transfer.intoVacuole ? 0.2 : 0.5;
+    const crossingFraction =
+      transfer.intoVacuole || transfer.animalTransfer ? 0.2 : 0.5;
     if (progress < crossingFraction) {
       const f = progress / crossingFraction;
       const startDistance = transfer.entering

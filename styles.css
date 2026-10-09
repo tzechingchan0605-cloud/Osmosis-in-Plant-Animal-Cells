@@ -1828,11 +1828,16 @@ summary {
   margin: 25px 0;
 }
 .extension-final-questions label {
-  font-size: 12px;
-  color: #789064;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
   line-height: 1.8;
   display: block;
   margin-bottom: 10px;
+}
+#extension-study .extension-final-questions select {
+  font-size: 16px;
+  color: #000;
 }
 .final-explanation > .primary-button {
   width: auto;
@@ -2124,7 +2129,7 @@ summary {
     gap: 20px;
   }
   .extension-final-questions label {
-    font-size: 11px;
+    font-size: 16px;
   }
   .extension-final-feedback {
     padding: 18px;
