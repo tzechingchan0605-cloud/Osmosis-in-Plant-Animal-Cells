@@ -5,6 +5,7 @@ import {
   SALINE_PSI,
   createExtensionCell,
   extensionPotential,
+  extensionEquilibriumVolume,
   advanceExtensionCell,
   extensionDirection,
 } from "../js/extension-model.js";
@@ -213,9 +214,13 @@ test("Each student's hypothesis controls either RBC's water movement and equilib
       let cell = { ...createExtensionCell(name, relation), status: "running" };
       assert.equal(cell.initialPsi, psi);
       assert.equal(cell.direction, direction);
+      const projectedVolume = extensionEquilibriumVolume(cell);
+      assert.equal(cell.volume, 1);
+      assert.equal(cell.elapsed, 0);
       for (let i = 0; i < 1500 && cell.status === "running"; i++)
         cell = advanceExtensionCell(cell, 1 / 60);
       assert.equal(cell.status, "complete");
+      assert.equal(cell.volume, projectedVolume);
       assert.ok(Math.abs(cell.volume - psi / SALINE_PSI) < 1e-10);
       assert.ok(Math.abs(extensionPotential(cell) - SALINE_PSI) < 1e-10);
       assert.equal(

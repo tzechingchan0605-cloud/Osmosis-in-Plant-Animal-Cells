@@ -4,6 +4,7 @@ import {
   createExtensionCell,
   advanceExtensionCell,
   extensionPotential,
+  extensionEquilibriumVolume,
 } from "./extension-model.js";
 import { SIMULATION_SPEED } from "./settings.js";
 import { drawChamber } from "./renderer.js";
@@ -175,7 +176,7 @@ export function setupExtension({ t, returnToLab }) {
       );
       renderPhotoComparison($("#extension-photo-comparison"), [a, other]);
     }
-    if (step === 3) renderSummary();
+    renderSummary();
     if (feedbackShown) checkExplanation();
   }
   function renderPhotoComparison(container, cells) {
@@ -198,39 +199,52 @@ export function setupExtension({ t, returnToLab }) {
     );
   }
   function renderSummary() {
-    $("#extension-review-note").hidden = !!results.B;
-    renderPhotoComparison(
-      $("#extension-summary-comparison"),
-      ["A", "B"].filter((name) => results[name]).map((name) => results[name]),
+    const completed = Boolean(results.A && results.B);
+    const cells = completed
+      ? [results.A, results.B]
+      : hypothesisReady()
+        ? [a, other].map((current) => ({
+            ...current,
+            volume: extensionEquilibriumVolume(current),
+          }))
+        : [];
+    const note = $("#extension-review-note");
+    note.hidden = completed;
+    note.textContent = t(
+      cells.length ? "summaryModelResults" : "summaryNeedsHypotheses",
     );
-    $("#extension-summary-body").replaceChildren(
-      ...["A", "B"]
-        .filter((name) => results[name])
-        .map((name) => {
-          const current = results[name],
-            row = document.createElement("tr");
-          const values = [
-            t("cell" + name),
-            current.initialPsi.toFixed(0).replace("-", "−"),
-            t(
-              current.direction === "none"
-                ? "iso"
-                : current.direction === "in"
-                  ? "hypo"
-                  : "hyper",
-            ),
-            t(current.direction),
-            cellObservation(current),
-          ];
-          row.replaceChildren(
-            ...values.map((text) =>
-              Object.assign(document.createElement("td"), {
-                textContent: text,
-              }),
-            ),
-          );
-          return row;
-        }),
+    renderPhotoComparison($("#extension-summary-comparison"), cells);
+    const body = $("#extension-summary-body");
+    body.dataset.resultsSource = completed
+      ? "observed"
+      : cells.length
+        ? "model"
+        : "empty";
+    body.replaceChildren(
+      ...cells.map((current) => {
+        const row = document.createElement("tr");
+        const values = [
+          t("cell" + current.name),
+          current.initialPsi.toFixed(0).replace("-", "−"),
+          t(
+            current.direction === "none"
+              ? "iso"
+              : current.direction === "in"
+                ? "hypo"
+                : "hyper",
+          ),
+          t(current.direction),
+          cellObservation(current),
+        ];
+        row.replaceChildren(
+          ...values.map((text) =>
+            Object.assign(document.createElement("td"), {
+              textContent: text,
+            }),
+          ),
+        );
+        return row;
+      }),
     );
   }
   function checkExplanation() {

@@ -183,8 +183,10 @@ export const translations = {
     extensionHeading: "Same solution. Different cells?",
     extensionSubtitle:
       "Look beyond the usual rule and test a hypothesis about individual red blood cells.",
-    reviewTestsFirst:
-      "Complete the tests in stage 02 to add their observations here. You can review any stage without losing your answers.",
+    summaryNeedsHypotheses:
+      "Choose the initial water-potential relationships for both cells in stage 01. Their final model results will appear here automatically.",
+    summaryModelResults:
+      "This table shows the final model results calculated from your hypotheses. Watch the changes in stage 02.",
     restartActivity: "Restart activity",
     observeHypothesisStep: "Observe and hypothesise",
     testStep: "Test",
@@ -452,8 +454,10 @@ export const translations = {
     extensionEyebrow: "延伸學習 · 像科學家一樣思考",
     extensionHeading: "相同溶液，不同細胞？",
     extensionSubtitle: "進一步探索個別紅血細胞的差異，並測試一個假說。",
-    reviewTestsFirst:
-      "完成第 02 階段的測試後，觀察結果會加入此處。你可隨時重溫各階段，答案會保留。",
+    summaryNeedsHypotheses:
+      "請在第 01 階段選擇細胞 A、B 的起始水勢關係，兩個細胞的最終模擬結果便會自動加入此表。",
+    summaryModelResults:
+      "此表顯示按你的假說計算的最終模擬結果；可在第 02 階段觀看變化過程。",
     restartActivity: "重新開始活動",
     observeHypothesisStep: "觀察及提出假說",
     testStep: "測試",

@@ -27,10 +27,13 @@ export function createExtensionCell(name, relation) {
 export function extensionPotential(cell) {
   return cell.initialPsi / cell.volume;
 }
+export function extensionEquilibriumVolume(cell) {
+  return cell.initialPsi / SALINE_PSI;
+}
 export function advanceExtensionCell(cell, dt) {
   if (cell.status !== "running") return cell;
   const next = { ...cell, elapsed: cell.elapsed + dt };
-  const target = cell.initialPsi / SALINE_PSI;
+  const target = extensionEquilibriumVolume(cell);
   next.volume += (target - next.volume) * (1 - Math.exp(-0.9 * dt));
   if (next.elapsed >= 2.5 && Math.abs(next.volume - target) < 0.00002) {
     next.volume = target;

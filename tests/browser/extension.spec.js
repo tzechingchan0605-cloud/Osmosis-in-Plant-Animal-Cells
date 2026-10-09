@@ -206,6 +206,115 @@ test("All three stage buttons support review, keyboard activation and pausing wi
   await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
   await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
 });
+test("Stage 03 loads final results immediately for every hypothesis pair without starting the animation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#extension-button").click();
+  const body = page.locator("#extension-summary-body");
+  const rows = body.locator("tr");
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await expect(rows).toHaveCount(0);
+  await expect(body).toHaveAttribute("data-results-source", "empty");
+  const outcomes = {
+    higher: [
+      "−700",
+      "Hypertonic solution",
+      "Out of the cell",
+      "Shrinking (−11.84%)",
+    ],
+    equal: [
+      "−794",
+      "Isotonic solution",
+      "No net movement",
+      "Shape & volume unchanged",
+    ],
+    lower: [
+      "−900",
+      "Hypotonic solution",
+      "Into the cell",
+      "Slight swelling (+13.35%)",
+    ],
+  };
+  for (const a of ["higher", "equal", "lower"]) {
+    for (const b of ["higher", "equal", "lower"]) {
+      await page.locator("#compare-psi-a").selectOption(a);
+      await page.locator("#compare-psi-b").selectOption(b);
+      await expect(page.locator("#extension-step-1")).toBeVisible();
+      await expect(rows).toHaveCount(2);
+      await expect(rows.nth(0).locator("td")).toHaveText([
+        "Cell A",
+        ...outcomes[a],
+      ]);
+      await expect(rows.nth(1).locator("td")).toHaveText([
+        "Cell B",
+        ...outcomes[b],
+      ]);
+      await expect(body).toHaveAttribute("data-results-source", "model");
+      await expect(page.locator("#extension-volume-a")).toHaveText(
+        "Volume: 0.00%",
+      );
+      await expect(page.locator("#extension-volume-other")).toHaveText(
+        "Volume: 0.00%",
+      );
+      await expect(page.locator("#extension-pause")).toHaveText(
+        "Test the hypothesis",
+      );
+      await expect(page.locator("#extension-test-result")).toBeHidden();
+      const comparisons = page.locator("#extension-summary-comparison p");
+      await expect(comparisons.nth(0)).toHaveAttribute(
+        "data-matches-photo",
+        String(a === "equal"),
+      );
+      await expect(comparisons.nth(1)).toHaveAttribute(
+        "data-matches-photo",
+        String(b === "higher"),
+      );
+    }
+  }
+  await page.locator("#compare-psi-a").selectOption("equal");
+  await page.locator("#compare-psi-b").selectOption("higher");
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-review-note")).toBeVisible();
+  await expect(page.locator("#extension-review-note")).toContainText(
+    "calculated from your hypotheses",
+  );
+  await page.locator("#language-button").click();
+  await expect(rows.nth(0).locator("td")).toHaveText([
+    "細胞 A",
+    "−794",
+    "等滲溶液",
+    "沒有淨移動",
+    "形狀和體積不變",
+  ]);
+  await expect(rows.nth(1).locator("td")).toHaveText([
+    "細胞 B",
+    "−700",
+    "高滲溶液",
+    "離開細胞",
+    "萎縮（−11.84%）",
+  ]);
+  await expect(page.locator("#extension-review-note")).toContainText(
+    "按你的假說計算",
+  );
+  await page.locator('[data-extension-step="2"]').click();
+  await expect(page.locator("#extension-canvas-other")).toHaveAttribute(
+    "data-cell-potential",
+    "-700",
+  );
+  await page.locator("#extension-pause").click();
+  await page.waitForTimeout(400);
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(body).toHaveAttribute("data-results-source", "model");
+  await expect(rows.nth(1).locator("td").last()).toHaveText("萎縮（−11.84%）");
+  await page.locator("#extension-reset").click();
+  await expect(rows).toHaveCount(0);
+  await expect(body).toHaveAttribute("data-results-source", "empty");
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator("#extension-review-note")).toContainText(
+    "第 01 階段",
+  );
+});
 test("Extension fits a mobile screen and switching activities pauses the core experiment", async ({
   page,
 }) => {
@@ -283,6 +392,11 @@ test("Student hypotheses change both cell outcomes, compare against the photo an
     page.locator('#extension-photo-comparison [data-matches-photo="false"]'),
   ).toHaveCount(2);
   await page.locator("#extension-to-explain").click();
+  await expect(page.locator("#extension-summary-body")).toHaveAttribute(
+    "data-results-source",
+    "observed",
+  );
+  await expect(page.locator("#extension-review-note")).toBeHidden();
   await expect(
     page.locator('#extension-summary-comparison [data-matches-photo="false"]'),
   ).toHaveCount(2);
@@ -292,6 +406,13 @@ test("Student hypotheses change both cell outcomes, compare against the photo an
   await page.locator("#extension-revise-summary").click();
   await page.locator("#compare-psi-a").selectOption("equal");
   await page.locator("#compare-psi-b").selectOption("higher");
+  await expect(page.locator("#extension-summary-body")).toHaveAttribute(
+    "data-results-source",
+    "model",
+  );
+  await expect(
+    page.locator("#extension-summary-body tr td:nth-child(2)"),
+  ).toHaveText(["−794", "−700"]);
   await page.locator("#language-button").click();
   await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
   await expect(page.locator("#compare-psi-b")).toHaveValue("higher");
