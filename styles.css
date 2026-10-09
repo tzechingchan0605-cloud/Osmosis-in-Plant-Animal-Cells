@@ -772,7 +772,7 @@ input[type="range"] {
 .result-card ul {
   padding-left: 18px;
   margin: 15px 0 0;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.9;
   color: #526448;
 }
@@ -1331,7 +1331,7 @@ summary {
     font-size: 21px;
   }
   .result-card ul {
-    font-size: 11px;
+    font-size: 13px;
   }
   .result-placeholder {
     gap: 13px;
