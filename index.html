@@ -10,29 +10,29 @@
     />
     <title>Osmosis Lab · 滲透實驗室</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20261009.3" />
+    <link rel="stylesheet" href="./styles.css?v=20261010.1" />
     <!-- Keep all module and stylesheet release queries in sync when publishing. -->
     <script type="importmap">
       {
         "imports": {
-          "./js/app.js": "./js/app.js?v=20261009.3",
-          "./js/cell-details.js": "./js/cell-details.js?v=20261009.3",
-          "./js/conclusion.js": "./js/conclusion.js?v=20261009.3",
-          "./js/extension-model.js": "./js/extension-model.js?v=20261009.3",
-          "./js/extension-view.js": "./js/extension-view.js?v=20261009.3",
-          "./js/extension.js": "./js/extension.js?v=20261009.3",
-          "./js/geometry.js": "./js/geometry.js?v=20261009.3",
-          "./js/i18n.js": "./js/i18n.js?v=20261009.3",
-          "./js/model.js": "./js/model.js?v=20261009.3",
-          "./js/particles.js": "./js/particles.js?v=20261009.3",
-          "./js/potential-labels.js": "./js/potential-labels.js?v=20261009.3",
-          "./js/renderer.js": "./js/renderer.js?v=20261009.3",
-          "./js/rupture.js": "./js/rupture.js?v=20261009.3",
-          "./js/settings.js": "./js/settings.js?v=20261009.3"
+          "./js/app.js": "./js/app.js?v=20261010.1",
+          "./js/cell-details.js": "./js/cell-details.js?v=20261010.1",
+          "./js/conclusion.js": "./js/conclusion.js?v=20261010.1",
+          "./js/extension-model.js": "./js/extension-model.js?v=20261010.1",
+          "./js/extension-view.js": "./js/extension-view.js?v=20261010.1",
+          "./js/extension.js": "./js/extension.js?v=20261010.1",
+          "./js/geometry.js": "./js/geometry.js?v=20261010.1",
+          "./js/i18n.js": "./js/i18n.js?v=20261010.1",
+          "./js/model.js": "./js/model.js?v=20261010.1",
+          "./js/particles.js": "./js/particles.js?v=20261010.1",
+          "./js/potential-labels.js": "./js/potential-labels.js?v=20261010.1",
+          "./js/renderer.js": "./js/renderer.js?v=20261010.1",
+          "./js/rupture.js": "./js/rupture.js?v=20261010.1",
+          "./js/settings.js": "./js/settings.js?v=20261010.1"
         }
       }
     </script>
-    <script type="module" src="./js/app.js?v=20261009.3"></script>
+    <script type="module" src="./js/app.js?v=20261010.1"></script>
   </head>
   <body>
     <header class="site-header">
@@ -103,9 +103,9 @@
               <legend data-i18n="chooseCell">Choose a cell</legend>
               <div class="cell-picker">
                 <button
-                  class="cell-button selected"
+                  class="cell-button"
                   data-cell="plant"
-                  aria-pressed="true"
+                  aria-pressed="false"
                 >
                   <svg
                     class="cell-icon plant-icon"
@@ -120,9 +120,9 @@
                   ><small data-i18n="plantDetail">With a cell wall</small>
                 </button>
                 <button
-                  class="cell-button"
+                  class="cell-button selected"
                   data-cell="animal"
-                  aria-pressed="false"
+                  aria-pressed="true"
                 >
                   <svg
                     class="cell-icon animal-icon"
@@ -166,7 +166,7 @@
                   min="0"
                   max="20"
                   step="any"
-                  value="5"
+                  value="10.357"
                   inputmode="decimal"
                   aria-describedby="concentration-detail input-error"
                 /><span>%</span>
@@ -177,7 +177,7 @@
                 min="0"
                 max="20"
                 step="0.1"
-                value="5"
+                value="10.4"
                 aria-label="Sucrose concentration slider"
               />
               <div class="range-labels" id="concentration-detail">
@@ -194,6 +194,7 @@
                 <input
                   id="potential"
                   type="number"
+                  value="-750"
                   min="-1448.3"
                   max="0"
                   step="any"

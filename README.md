@@ -23,6 +23,8 @@ All application asset paths are relative, so the simulator works under a reposit
 
 ### Core lab
 
+The page opens with an animal cell in an isotonic sucrose solution. Both initial water potentials are **−750 kPa**, with the matching sucrose concentration calculated automatically (approximately 10.357%).
+
 1. Choose a plant cell or a nucleated animal cell.
 2. Change either sucrose concentration or solution water potential. The linked field and schematic particle density update automatically.
 3. Predict the net movement of water, then start, pause or resume the simulation. Starting or resuming scrolls to the observation diagram; reduced-motion preferences use an immediate scroll.

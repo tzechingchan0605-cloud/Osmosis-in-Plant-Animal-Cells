@@ -64,6 +64,7 @@ test("Concentration and water potential update each other and reject invalid inp
 test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water recovery", async ({
   page,
 }) => {
+  await page.locator('[data-cell="plant"]').click();
   await page.locator('[data-preset="strong"]').click();
   await page.locator('[data-prediction="out"]').click();
   await startAndFinish(page);
@@ -399,6 +400,7 @@ test("Water keeps its identity across Start, pause and equilibrium, with balance
       const { getParticleSnapshot } = await import("/js/renderer.js");
       return getParticleSnapshot(document.querySelector("#after-canvas"));
     });
+  await page.locator('[data-cell="plant"]').click();
   await page.locator('[data-preset="strong"]').click();
   const initial = await snapshot();
   const details = () =>

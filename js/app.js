@@ -24,8 +24,8 @@ try {
 } catch {
   /* Storage is optional. */
 }
-let cell = "plant",
-  concentration = 5,
+let cell = "animal",
+  concentration = potentialToConcentration(CELL_PSI),
   prediction = null,
   errorKey = null;
 let state = createTrial(cell, concentration);
