@@ -356,6 +356,31 @@ legend {
   color: #88937c;
   white-space: nowrap;
 }
+.potential-reading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.potential-comparison-label,
+.number-field > .potential-comparison-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0;
+  color: #000;
+}
+.potential-comparison-label[data-comparison="higher"] {
+  color: #248146;
+}
+.potential-comparison-label[data-comparison="lower"] {
+  color: #b32b2b;
+}
+#potential {
+  flex: 1;
+  width: 0;
+}
 .control-divider {
   height: 1px;
   background: #edf0e8;
@@ -1159,6 +1184,21 @@ summary {
   }
 }
 @media (max-width: 480px) {
+  .potential-number-field {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 42px;
+  }
+  .potential-number-field > .potential-comparison-label {
+    order: 1;
+    flex-basis: 100%;
+    margin: 0;
+    padding: 0 8px 6px;
+    text-align: right;
+  }
+  .potential-number-field > .linked-mark {
+    display: none;
+  }
   main {
     padding: 24px 12px 0;
   }

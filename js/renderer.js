@@ -2,7 +2,11 @@ import { cellGeometry, boundaryAt } from "./geometry.js";
 import { cellPotential } from "./model.js";
 import { drawRupturedCell } from "./rupture.js";
 import { cytoplasmDots, drawNucleus } from "./cell-details.js";
-import { cytoplasmLabelBox } from "./potential-labels.js";
+import {
+  cytoplasmLabelBox,
+  potentialComparison,
+  potentialComparisonText,
+} from "./potential-labels.js";
 import {
   createParticles,
   advanceParticles,
@@ -379,57 +383,69 @@ export function drawChamber(
     )
       .toFixed(potentialDigits)
       .replace("-", "−");
+  const cellComparison = potentialComparison(
+    cellPsi === null ? null : cellPsi * potentialScale,
+    trial.solutionPsi * potentialScale,
+    potentialDigits,
+  );
+  const solutionComparison =
+    cellComparison === "higher"
+      ? "lower"
+      : cellComparison === "lower"
+        ? "higher"
+        : cellComparison;
+  const difference =
+    cellComparison === "higher" ? 1 : cellComparison === "lower" ? -1 : 0;
+  const comparisonSuffix = (comparison) => {
+    const text = potentialComparisonText(t, comparison);
+    return text ? ` ${text}` : "";
+  };
   canvas.setAttribute(
     "aria-description",
-    `${t("solutionPsiShort")}: ${number(trial.solutionPsi)} ${potentialUnit}; ` +
+    `${t("solutionPsiShort")}: ${number(trial.solutionPsi)} ${potentialUnit}${comparisonSuffix(solutionComparison)}; ` +
       (cellPsi === null
         ? t("membraneBroken")
-        : `${t("cellPsiShort")}: ${number(cellPsi)} ${potentialUnit}`),
+        : `${t("cellPsiShort")}: ${number(cellPsi)} ${potentialUnit}${comparisonSuffix(cellComparison)}`),
   );
-  const roundedPotential = (value) =>
-    Number((value * potentialScale).toFixed(potentialDigits));
-  const difference =
-    cellPsi === null
-      ? 0
-      : roundedPotential(cellPsi) - roundedPotential(trial.solutionPsi);
   const cellColor =
     difference > 0 ? "#248146" : difference < 0 ? "#b32b2b" : "#000000";
   const solutionColor =
     difference < 0 ? "#248146" : difference > 0 ? "#b32b2b" : "#000000";
-  const badge = (title, value, valueColor, inside) => {
+  const badge = (title, value, valueColor, inside, comparison) => {
     const separator = document.documentElement.lang.startsWith("zh")
       ? "："
       : ": ";
     const titleText = `${title}${separator}`;
-    const valueText = `${number(value)}${potentialUnit}`;
-    let box, metrics, fontSize;
-    for (fontSize = inside ? 12 : 16; fontSize >= 3; fontSize -= 0.5) {
+    const valueText = `${number(value)}${potentialUnit}${comparisonSuffix(comparison)}`;
+    let box, metrics, fontSize, padding;
+    for (fontSize = inside ? 12 : 16; fontSize >= 2.5; fontSize -= 0.5) {
       ctx.font = `600 ${fontSize}px system-ui, "Microsoft JhengHei", sans-serif`;
       metrics = ctx.measureText(titleText + valueText);
-      const width = metrics.width + 4;
+      padding = fontSize <= 5 ? 1 : 2;
+      const width = metrics.width + padding * 2;
       const height =
         Math.ceil(
           metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-        ) + 4;
+        ) + padding * 2;
       box = inside
         ? cytoplasmLabelBox(geometry, width, height)
-        : width <= Math.min(180, w - 24)
+        : width <= Math.min(260, w - 24)
           ? { x: 12, y: 6, width, height }
           : null;
       if (box) break;
     }
     if (!box) return;
     const titleWidth = ctx.measureText(titleText).width;
-    const baseline = box.y + 2 + metrics.actualBoundingBoxAscent;
+    const baseline = box.y + padding + metrics.actualBoundingBoxAscent;
     ctx.textAlign = "left";
     ctx.fillStyle = "#ffffffdf";
     ctx.beginPath();
     ctx.roundRect(box.x, box.y, box.width, box.height, 3);
     ctx.fill();
     ctx.fillStyle = "#36586b";
-    ctx.fillText(titleText, box.x + 2, baseline);
+    ctx.fillText(titleText, box.x + padding, baseline);
     ctx.fillStyle = valueColor;
-    ctx.fillText(valueText, box.x + 2 + titleWidth, baseline);
+    ctx.fillText(valueText, box.x + padding + titleWidth, baseline);
     chamber.structures.potentialLabels[inside ? "cell" : "solution"] = {
       ...box,
       fontSize,
@@ -438,8 +454,14 @@ export function drawChamber(
     };
   };
   chamber.structures.potentialLabels = {};
-  badge(t("solutionPsiShort"), trial.solutionPsi, solutionColor, false);
+  badge(
+    t("solutionPsiShort"),
+    trial.solutionPsi,
+    solutionColor,
+    false,
+    solutionComparison,
+  );
   if (cellPsi !== null) {
-    badge(t("cellPsiShort"), cellPsi, cellColor, true);
+    badge(t("cellPsiShort"), cellPsi, cellColor, true, cellComparison);
   }
 }

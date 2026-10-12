@@ -24,6 +24,57 @@ async function startAndFinish(page) {
   );
 }
 
+test("Water-potential comparisons follow negative values, rounding and language in controls and diagrams", async ({ page }) => {
+  for (const cell of ["animal", "plant"]) {
+    await page.locator(`[data-cell="${cell}"]`).click();
+    for (const language of ["en", "zh"]) {
+      if (language === "zh") await page.locator("#language-button").click();
+      for (const [value, cellLabel, solutionLabel] of [
+        ["-200", "lower", "higher"],
+        ["-1000", "higher", "lower"],
+        ["-750", "equal", "equal"],
+        ["-750.01", "equal", "equal"],
+      ]) {
+        await page.locator("#potential").fill(value);
+        const text = (key) => language === "en" ? `(${key})`
+          : `（${{ higher: "較高", lower: "較低", equal: "相同" }[key]}）`;
+        await expect(page.locator("#initial-potential-comparison")).toHaveText(text(cellLabel));
+        await expect(page.locator("#solution-potential-comparison")).toHaveText(text(solutionLabel));
+        for (const selector of ["#before-canvas", "#after-canvas"]) {
+          await expect(page.locator(selector)).toHaveAttribute("aria-description",
+            new RegExp(text(solutionLabel).replace(/[()]/g, "\\$&") + ".*" + text(cellLabel).replace(/[()]/g, "\\$&")));
+          const labels = await page.evaluate(async (selector) => {
+            const { getStructureSnapshot } = await import("/js/renderer.js");
+            return getStructureSnapshot(document.querySelector(selector)).potentialLabels;
+          }, selector);
+          expect(labels.cell.text).toContain(text(cellLabel));
+          expect(labels.solution.text).toContain(text(solutionLabel));
+        }
+      }
+    }
+    await page.locator("#language-button").click();
+  }
+  await page.locator("#potential").fill("50");
+  await expect(page.locator("#initial-potential-comparison")).toBeHidden();
+  await expect(page.locator("#solution-potential-comparison")).toBeHidden();
+  await page.locator('[data-preset="equal"]').click();
+  await expect(page.locator("#solution-potential-comparison")).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const language of ["en", "zh"]) {
+    if (language === "zh") await page.locator("#language-button").click();
+    await page.locator("#potential").fill("-1448.3");
+    const fits = await page.locator("#potential").evaluate((input) => {
+      const style = getComputedStyle(input);
+      const ctx = document.createElement("canvas").getContext("2d");
+      ctx.font = style.font;
+      return input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+        >= ctx.measureText(input.value).width;
+    });
+    expect(fits, `${language}: the full potential is visible on a narrow phone`).toBeTruthy();
+    await expect(page.locator("#solution-potential-comparison")).toBeVisible();
+  }
+});
+
 test("Concentration and water potential update each other and reject invalid inputs", async ({
   page,
 }) => {
@@ -68,6 +119,8 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await page.locator('[data-preset="strong"]').click();
   await page.locator('[data-prediction="out"]').click();
   await startAndFinish(page);
+  await expect(page.locator("#before-canvas")).toHaveAttribute("aria-description", /Solution Ψ:.*\(lower\).*Cell Ψ:.*\(higher\)/);
+  await expect(page.locator("#after-canvas")).toHaveAttribute("aria-description", /Solution Ψ:.*\(equal\).*Cell Ψ:.*\(equal\)/);
   await expect(page.locator("#result-heading")).toHaveText(
     "Hypertonic solution (solute concentration > inside the cell)",
   );
@@ -258,6 +311,8 @@ test("Animal cells show lysis in pure water and wrinkles in concentrated sucrose
     "data-cell-potential",
     "",
   );
+  await expect(page.locator("#after-canvas")).toHaveAttribute("aria-description", /membrane/i);
+  expect(await page.locator("#after-canvas").getAttribute("aria-description")).not.toMatch(/\((higher|lower|equal)\)/);
   const releasedWater = await readWater();
   expect(releasedWater.map((p) => p.id)).toEqual(
     originalWater.map((p) => p.id),

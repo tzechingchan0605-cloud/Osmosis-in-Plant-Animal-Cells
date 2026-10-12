@@ -12,6 +12,10 @@ import { drawChamber } from "./renderer.js";
 import { conclusionPoint } from "./conclusion.js";
 import { setupExtension } from "./extension.js";
 import { SIMULATION_SPEED } from "./settings.js";
+import {
+  potentialComparison,
+  potentialComparisonText,
+} from "./potential-labels.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -205,6 +209,16 @@ function renderUI() {
     document.createTextNode(format(state.initialPsi) + " "),
     small,
   );
+  for (const [selector, value, other] of [
+    ["#initial-potential-comparison", before.initialPsi, before.solutionPsi],
+    ["#solution-potential-comparison", before.solutionPsi, before.initialPsi],
+  ]) {
+    const element = $(selector);
+    const comparison = potentialComparison(value, other);
+    element.textContent = potentialComparisonText(t, comparison);
+    element.dataset.comparison = comparison;
+    element.hidden = Boolean(errorKey);
+  }
   $(".fixed-pill").textContent = t(
     state.isRecovery ? "continuingValue" : "presetValue",
   );

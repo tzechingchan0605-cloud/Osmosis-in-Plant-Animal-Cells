@@ -1,3 +1,16 @@
+// Compare the displayed values so identical rounded numbers are labelled equal.
+export function potentialComparison(value, other, digits = 1) {
+  if (!Number.isFinite(value) || !Number.isFinite(other)) return null;
+  const difference = Number(value.toFixed(digits)) - Number(other.toFixed(digits));
+  return difference > 0 ? "higher" : difference < 0 ? "lower" : "equal";
+}
+
+export function potentialComparisonText(t, comparison) {
+  return comparison
+    ? t(`potential${comparison[0].toUpperCase()}${comparison.slice(1)}`)
+    : "";
+}
+
 function horizontalSpan(outline, y) {
   const intersections = [];
   for (let i = 0; i < outline.length; i++) {

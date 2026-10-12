@@ -10,29 +10,29 @@
     />
     <title>Osmosis Lab · 滲透實驗室</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20261010.1" />
+    <link rel="stylesheet" href="./styles.css?v=20261012.1" />
     <!-- Keep all module and stylesheet release queries in sync when publishing. -->
     <script type="importmap">
       {
         "imports": {
-          "./js/app.js": "./js/app.js?v=20261010.1",
-          "./js/cell-details.js": "./js/cell-details.js?v=20261010.1",
-          "./js/conclusion.js": "./js/conclusion.js?v=20261010.1",
-          "./js/extension-model.js": "./js/extension-model.js?v=20261010.1",
-          "./js/extension-view.js": "./js/extension-view.js?v=20261010.1",
-          "./js/extension.js": "./js/extension.js?v=20261010.1",
-          "./js/geometry.js": "./js/geometry.js?v=20261010.1",
-          "./js/i18n.js": "./js/i18n.js?v=20261010.1",
-          "./js/model.js": "./js/model.js?v=20261010.1",
-          "./js/particles.js": "./js/particles.js?v=20261010.1",
-          "./js/potential-labels.js": "./js/potential-labels.js?v=20261010.1",
-          "./js/renderer.js": "./js/renderer.js?v=20261010.1",
-          "./js/rupture.js": "./js/rupture.js?v=20261010.1",
-          "./js/settings.js": "./js/settings.js?v=20261010.1"
+          "./js/app.js": "./js/app.js?v=20261012.1",
+          "./js/cell-details.js": "./js/cell-details.js?v=20261012.1",
+          "./js/conclusion.js": "./js/conclusion.js?v=20261012.1",
+          "./js/extension-model.js": "./js/extension-model.js?v=20261012.1",
+          "./js/extension-view.js": "./js/extension-view.js?v=20261012.1",
+          "./js/extension.js": "./js/extension.js?v=20261012.1",
+          "./js/geometry.js": "./js/geometry.js?v=20261012.1",
+          "./js/i18n.js": "./js/i18n.js?v=20261012.1",
+          "./js/model.js": "./js/model.js?v=20261012.1",
+          "./js/particles.js": "./js/particles.js?v=20261012.1",
+          "./js/potential-labels.js": "./js/potential-labels.js?v=20261012.1",
+          "./js/renderer.js": "./js/renderer.js?v=20261012.1",
+          "./js/rupture.js": "./js/rupture.js?v=20261012.1",
+          "./js/settings.js": "./js/settings.js?v=20261012.1"
         }
       }
     </script>
-    <script type="module" src="./js/app.js?v=20261010.1"></script>
+    <script type="module" src="./js/app.js?v=20261012.1"></script>
   </head>
   <body>
     <header class="site-header">
@@ -138,9 +138,13 @@
               <span
                 ><span class="tiny-label" data-i18n="startingPsi"
                   >STARTING CELL WATER POTENTIAL</span
-                ><strong id="initial-potential"
-                  >−750 <small>kPa</small></strong
-                ></span
+                ><span class="potential-reading"
+                  ><strong id="initial-potential"
+                    >−750 <small>kPa</small></strong
+                  ><span
+                    id="initial-potential-comparison"
+                    class="potential-comparison-label"
+                  ></span></span></span
               ><span class="fixed-pill" data-i18n="presetValue">(Assumed)</span>
             </div>
             <div class="control-divider"></div>
@@ -188,7 +192,7 @@
                 data-i18n="solutionPsi"
                 >Solution water potential (Ψ)</label
               >
-              <div class="number-field">
+              <div class="number-field potential-number-field">
                 <input
                   id="potential"
                   type="number"
@@ -197,8 +201,11 @@
                   max="0"
                   step="any"
                   inputmode="decimal"
-                  aria-describedby="input-error"
-                /><span>kPa</span
+                  aria-describedby="input-error solution-potential-comparison"
+                /><span
+                  id="solution-potential-comparison"
+                  class="potential-comparison-label"
+                ></span><span>kPa</span
                 ><span class="linked-mark" aria-hidden="true">↔</span>
               </div>
               <p class="input-error" id="input-error" role="alert" hidden></p>
