@@ -118,8 +118,8 @@ test("The A/B extension preserves symbol predictions and supports a correct fina
     await expect(page.locator(`#infer-${name}`)).toHaveCSS("font-size", "16px");
   }
   await expect(
-    page.locator("#extension-summary-body tr td:nth-child(2)"),
-  ).toHaveText(["−794", "−700"]);
+    page.locator("#extension-summary-body tr td:nth-child(3)"),
+  ).toHaveText(["−794 kPa （相同）", "−700 kPa （較高）"]);
   await page.locator('[data-extension-step="1"]').click();
   await expect(page.locator("#extension-step-1")).toBeVisible();
   await page.locator('[data-extension-step="2"]').click();
@@ -213,25 +213,33 @@ test("Stage 03 loads final results immediately for every hypothesis pair without
   await page.locator("#extension-button").click();
   const body = page.locator("#extension-summary-body");
   const rows = body.locator("tr");
+  const headings = page.locator(".extension-summary th");
+  await expect(headings).toHaveText([
+    "Trial", "Cell", "Initial cell Ψ", "Solution", "Initial solution Ψ",
+    "Net movement", "Observation",
+  ]);
   await page.locator("#compare-psi-a").selectOption("equal");
   await expect(rows).toHaveCount(0);
   await expect(body).toHaveAttribute("data-results-source", "empty");
   const outcomes = {
     higher: [
-      "−700",
-      "Hypertonic solution",
+      "−700 kPa (higher)",
+      "0.9% Sodium chloride solution · Hypertonic solution",
+      "−794 kPa (lower)",
       "Out of the cell",
       "Shrinking (−11.84%)",
     ],
     equal: [
-      "−794",
-      "Isotonic solution",
+      "−794 kPa (equal)",
+      "0.9% Sodium chloride solution · Isotonic solution",
+      "−794 kPa (equal)",
       "No net movement",
       "Shape & volume unchanged",
     ],
     lower: [
-      "−900",
-      "Hypotonic solution",
+      "−900 kPa (lower)",
+      "0.9% Sodium chloride solution · Hypotonic solution",
+      "−794 kPa (higher)",
       "Into the cell",
       "Slight swelling (+13.35%)",
     ],
@@ -243,13 +251,23 @@ test("Stage 03 loads final results immediately for every hypothesis pair without
       await expect(page.locator("#extension-step-1")).toBeVisible();
       await expect(rows).toHaveCount(2);
       await expect(rows.nth(0).locator("td")).toHaveText([
+        "01",
         "Cell A",
         ...outcomes[a],
       ]);
       await expect(rows.nth(1).locator("td")).toHaveText([
+        "02",
         "Cell B",
         ...outcomes[b],
       ]);
+      const colors = { higher: "rgb(36, 129, 70)", lower: "rgb(179, 43, 43)", equal: "rgb(0, 0, 0)" };
+      for (const [index, relation] of [a, b].entries()) {
+        const columns = rows.nth(index).locator("td");
+        const opposite = relation === "higher" ? "lower" : relation === "lower" ? "higher" : "equal";
+        await expect(columns.nth(2)).toHaveCSS("color", colors[relation]);
+        await expect(columns.nth(4)).toHaveCSS("color", colors[opposite]);
+        await expect(columns.nth(5)).toHaveCSS("color", colors[opposite]);
+      }
       await expect(body).toHaveAttribute("data-results-source", "model");
       await expect(page.locator("#extension-volume-a")).toHaveText(
         "Volume: 0.00%",
@@ -281,16 +299,23 @@ test("Stage 03 loads final results immediately for every hypothesis pair without
   );
   await page.locator("#language-button").click();
   await expect(rows.nth(0).locator("td")).toHaveText([
+    "01",
     "細胞 A",
-    "−794",
-    "等滲溶液",
+    "−794 kPa （相同）",
+    "0.9% 氯化鈉溶液 · 等滲溶液",
+    "−794 kPa （相同）",
     "沒有淨移動",
     "形狀和體積不變",
   ]);
+  await expect(headings).toHaveText([
+    "次數", "細胞", "細胞起始水勢", "溶液", "溶液起始水勢", "淨移動", "觀察結果",
+  ]);
   await expect(rows.nth(1).locator("td")).toHaveText([
+    "02",
     "細胞 B",
-    "−700",
-    "高滲溶液",
+    "−700 kPa （較高）",
+    "0.9% 氯化鈉溶液 · 高滲溶液",
+    "−794 kPa （較低）",
     "離開細胞",
     "萎縮（−11.84%）",
   ]);
@@ -352,6 +377,15 @@ test("Extension fits a mobile screen and switching activities pauses the core ex
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
+  await page.locator('[data-extension-step="3"]').click();
+  await expect(page.locator(".extension-summary th")).toHaveCount(7);
+  await expect(page.locator("#extension-summary-body tr")).toHaveCount(2);
+  const tableFits = await page.locator(".extension-summary").evaluate((table) =>
+    table.parentElement.scrollWidth > table.parentElement.clientWidth &&
+    document.documentElement.scrollWidth <= innerWidth,
+  );
+  expect(tableFits, "The seven-column extension table scrolls inside the phone viewport").toBeTruthy();
+  await expect(page.locator(".extension-summary th").first()).toHaveCSS("font-size", "9px");
   await page.locator("#extension-reset").click();
   await expect(page.locator("#extension-step-1")).toBeVisible();
   await expect(page.locator("#compare-psi-a")).toHaveValue("");
@@ -401,8 +435,8 @@ test("Student hypotheses change both cell outcomes, compare against the photo an
     page.locator('#extension-summary-comparison [data-matches-photo="false"]'),
   ).toHaveCount(2);
   await expect(
-    page.locator("#extension-summary-body tr td:nth-child(2)"),
-  ).toHaveText(["−700", "−900"]);
+    page.locator("#extension-summary-body tr td:nth-child(3)"),
+  ).toHaveText(["−700 kPa (higher)", "−900 kPa (lower)"]);
   await page.locator("#extension-revise-summary").click();
   await page.locator("#compare-psi-a").selectOption("equal");
   await page.locator("#compare-psi-b").selectOption("higher");
@@ -411,8 +445,8 @@ test("Student hypotheses change both cell outcomes, compare against the photo an
     "model",
   );
   await expect(
-    page.locator("#extension-summary-body tr td:nth-child(2)"),
-  ).toHaveText(["−794", "−700"]);
+    page.locator("#extension-summary-body tr td:nth-child(3)"),
+  ).toHaveText(["−794 kPa (equal)", "−700 kPa (higher)"]);
   await page.locator("#language-button").click();
   await expect(page.locator("#compare-psi-a")).toHaveValue("equal");
   await expect(page.locator("#compare-psi-b")).toHaveValue("higher");

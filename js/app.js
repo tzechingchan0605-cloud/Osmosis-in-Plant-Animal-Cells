@@ -15,6 +15,7 @@ import { SIMULATION_SPEED } from "./settings.js";
 import {
   potentialComparison,
   potentialComparisonText,
+  potentialTableCell,
 } from "./potential-labels.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -348,26 +349,27 @@ function renderNotebook() {
   $("#trials-body").replaceChildren(
     ...histories.map((trial, index) => {
       const row = document.createElement("tr");
+      const solutionPsi =
+        trial.initialSolutionPsi ?? concentrationToPotential(trial.concentration);
       const values = [
         String(index + 1).padStart(2, "0"),
         t(trial.isRecovery ? "notebookRecovery" : trial.cell),
-        Number.isFinite(trial.initialPsi)
-          ? `${format(trial.initialPsi)} kPa`
-          : "—",
+        "",
         `${format(trial.concentration, 2)}% · `,
-        `${format(trial.initialSolutionPsi ?? trial.solutionPsi)} kPa`,
+        "",
         t(movementKey(trial)),
         t(outcome(trial)),
       ];
       const cells = values.map((value) =>
         Object.assign(document.createElement("td"), { textContent: value }),
       );
+      cells[2] = potentialTableCell(t, trial.initialPsi, solutionPsi, format);
+      cells[4] = potentialTableCell(t, solutionPsi, trial.initialPsi, format);
       const tone = document.createElement("strong");
       tone.className = `notebook-tone-${trial.tone}`;
       tone.textContent = t(trial.tone);
       cells[3].append(tone);
-      for (const index of [4, 5])
-        cells[index].classList.add(`notebook-tone-${trial.tone}`);
+      cells[5].classList.add(`notebook-tone-${trial.tone}`);
       row.replaceChildren(...cells);
       return row;
     }),

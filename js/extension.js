@@ -9,6 +9,7 @@ import {
 import { SIMULATION_SPEED } from "./settings.js";
 import { drawChamber } from "./renderer.js";
 import { conclusionPoint } from "./conclusion.js";
+import { potentialTableCell } from "./potential-labels.js";
 
 export function setupExtension({ t, returnToLab }) {
   const root = document.querySelector("#extension-study");
@@ -221,28 +222,35 @@ export function setupExtension({ t, returnToLab }) {
         ? "model"
         : "empty";
     body.replaceChildren(
-      ...cells.map((current) => {
+      ...cells.map((current, index) => {
         const row = document.createElement("tr");
+        const tone =
+          current.direction === "none"
+            ? "iso"
+            : current.direction === "in"
+              ? "hypo"
+              : "hyper";
         const values = [
+          String(index + 1).padStart(2, "0"),
           t("cell" + current.name),
-          current.initialPsi.toFixed(0).replace("-", "−"),
-          t(
-            current.direction === "none"
-              ? "iso"
-              : current.direction === "in"
-                ? "hypo"
-                : "hyper",
-          ),
+          "",
+          `0.9% ${t("salineSolutionWord")} · `,
+          "",
           t(current.direction),
           cellObservation(current),
         ];
-        row.replaceChildren(
-          ...values.map((text) =>
-            Object.assign(document.createElement("td"), {
-              textContent: text,
-            }),
-          ),
+        const columns = values.map((textContent) =>
+          Object.assign(document.createElement("td"), { textContent }),
         );
+        const format = (value) => value.toFixed(0).replace("-", "−");
+        columns[2] = potentialTableCell(t, current.initialPsi, SALINE_PSI, format);
+        columns[4] = potentialTableCell(t, SALINE_PSI, current.initialPsi, format);
+        const solutionTone = document.createElement("strong");
+        solutionTone.className = `notebook-tone-${tone}`;
+        solutionTone.textContent = t(tone);
+        columns[3].append(solutionTone);
+        columns[5].classList.add(`notebook-tone-${tone}`);
+        row.replaceChildren(...columns);
         return row;
       }),
     );

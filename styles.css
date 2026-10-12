@@ -903,6 +903,17 @@ tr:last-child td {
 .notebook-tone-iso {
   color: #000;
 }
+.potential-table-value[data-comparison="higher"] {
+  color: #248146;
+  font-weight: 650;
+}
+.potential-table-value[data-comparison="lower"] {
+  color: #b32b2b;
+  font-weight: 650;
+}
+.potential-table-value[data-comparison="equal"] {
+  color: #000;
+}
 td:first-child {
   color: #a0aa93;
 }
@@ -1858,9 +1869,6 @@ summary {
   margin: auto;
   padding: 32px;
 }
-.extension-summary {
-  margin: 18px 0;
-}
 .extension-final-questions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2176,12 +2184,6 @@ summary {
   }
   .extension-final-feedback p {
     font-size: 11px;
-  }
-  .extension-summary th {
-    font-size: 8px;
-  }
-  .extension-summary td {
-    font-size: 10px;
   }
   html:lang(zh-Hant) .intro h1 {
     font-size: 28px;

@@ -11,6 +11,22 @@ export function potentialComparisonText(t, comparison) {
     : "";
 }
 
+export function potentialTableCell(t, value, other, format) {
+  const cell = document.createElement("td");
+  cell.className = "potential-table-value";
+  if (!Number.isFinite(value)) {
+    cell.textContent = "—";
+    return cell;
+  }
+  const comparison = potentialComparison(value, other);
+  cell.textContent = `${format(value)} kPa`;
+  if (comparison) {
+    cell.dataset.comparison = comparison;
+    cell.append(` ${potentialComparisonText(t, comparison)}`);
+  }
+  return cell;
+}
+
 function horizontalSpan(outline, y) {
   const intersections = [];
   for (let i = 0; i < outline.length; i++) {

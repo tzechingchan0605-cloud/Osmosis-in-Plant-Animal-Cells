@@ -140,7 +140,7 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#trials-body tr")).toHaveCount(1);
   const notebookCells = page.locator("#trials-body tr").first().locator("td");
   await expect(notebookCells).toHaveCount(7);
-  await expect(notebookCells.nth(2)).toHaveText("−750 kPa");
+  await expect(notebookCells.nth(2)).toHaveText("−750 kPa (higher)");
   await expect(notebookCells.nth(3).locator("strong")).toHaveCSS(
     "color",
     "rgb(179, 43, 43)",
@@ -191,7 +191,7 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   ]);
   await expect(page.locator("#trials-body tr")).toHaveCount(2);
   const recoveryCells = page.locator("#trials-body tr").last().locator("td");
-  await expect(recoveryCells.nth(2)).not.toHaveText("−750 kPa");
+  await expect(recoveryCells.nth(2)).not.toHaveText(/−750 kPa/);
   for (const index of [4, 5])
     await expect(recoveryCells.nth(index)).toHaveCSS(
       "color",
@@ -208,6 +208,41 @@ test("Plant plasmolysis, bilingual conclusions, notebook and distilled-water rec
   await expect(page.locator("#trials-body tr")).toHaveCount(2);
   await page.locator("#clear-trials").click();
   await expect(page.locator("#notebook-empty")).toBeVisible();
+});
+
+test("Notebook comparisons use the starting potentials and survive settings changes, language switching and reload", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("osmosis-trials", JSON.stringify([
+      { cell: "animal", concentration: 2.76, initialPsi: -750, initialSolutionPsi: -200, solutionPsi: -550, volume: 1.4, tone: "hypo", burst: false },
+      { cell: "plant", concentration: 13.8, initialPsi: -750, initialSolutionPsi: -1000, solutionPsi: -850, volume: 0.8, tone: "hyper", burst: false },
+      { cell: "animal", concentration: 10.357, initialPsi: -750, initialSolutionPsi: -750.01, solutionPsi: -750, volume: 1, tone: "iso", burst: false },
+      // Older records have only concentration and the final bath potential.
+      { cell: "animal", concentration: 0, initialPsi: -750, solutionPsi: -300, volume: 1.6, tone: "hypo", burst: true },
+    ]));
+  });
+  await page.reload();
+  const rows = page.locator("#trials-body tr");
+  await expect(rows).toHaveCount(4);
+  for (const [language, suffixes] of [
+    ["en", ["(higher)", "(lower)", "(equal)"]],
+    ["zh", ["（較高）", "（較低）", "（相同）"]],
+  ]) {
+    if (language === "zh") await page.locator("#language-button").click();
+    const [higher, lower, equal] = suffixes;
+    await expect(rows.locator("td:nth-child(3)")).toHaveText([
+      `−750 kPa ${lower}`, `−750 kPa ${higher}`, `−750 kPa ${equal}`, `−750 kPa ${lower}`,
+    ]);
+    await expect(rows.locator("td:nth-child(5)")).toHaveText([
+      `−200 kPa ${higher}`, `−1,000 kPa ${lower}`, `−750 kPa ${equal}`, `0 kPa ${higher}`,
+    ]);
+    await expect(rows.nth(0).locator("td").nth(2)).toHaveCSS("color", "rgb(179, 43, 43)");
+    await expect(rows.nth(0).locator("td").nth(4)).toHaveCSS("color", "rgb(36, 129, 70)");
+    await expect(rows.nth(2).locator("td").nth(2)).toHaveCSS("color", "rgb(0, 0, 0)");
+    await page.locator("#potential").fill("-1200");
+    await expect(rows.nth(0).locator("td").nth(4)).toHaveText(`−200 kPa ${higher}`);
+  }
+  await page.reload();
+  await expect(rows.nth(0).locator("td").nth(4)).toHaveText("−200 kPa （較高）");
 });
 
 test("Notebook headings and historical values stay aligned while outdated unversioned scripts are excluded", async ({
@@ -256,9 +291,9 @@ test("Notebook headings and historical values stay aligned while outdated unvers
   const second = page.locator("#trials-body tr").last().locator("td");
   await expect(first).toHaveCount(7);
   await expect(second).toHaveCount(7);
-  await expect(first.nth(2)).toHaveText("−500 kPa");
+  await expect(first.nth(2)).toHaveText("−500 kPa （較高）");
   await expect(first.nth(3)).toContainText("19.7% · 高滲溶液");
-  await expect(first.nth(4)).toHaveText("−1,426.6 kPa");
+  await expect(first.nth(4)).toHaveText("−1,426.6 kPa （較低）");
   await expect(first.nth(5)).toHaveText("離開細胞");
   await expect(second.nth(2)).toHaveText("—");
   await expect(second.nth(3)).toContainText("4.3% · 低滲溶液");
@@ -267,7 +302,7 @@ test("Notebook headings and historical values stay aligned while outdated unvers
   await page.locator("#language-button").click();
   await expect(headings.nth(2)).toHaveText("Initial cell Ψ");
   await expect(headings.nth(4)).toHaveText("Initial solution Ψ");
-  await expect(first.nth(2)).toHaveText("−500 kPa");
+  await expect(first.nth(2)).toHaveText("−500 kPa (higher)");
   expect(staleRequests).toEqual([]);
 });
 
