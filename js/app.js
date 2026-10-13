@@ -296,7 +296,9 @@ function renderConclusion() {
   const paused = state.status === "paused";
   const feature = outcome(state);
   $("#result-card").className = "result-card " + state.tone;
-  $("#result-heading").textContent = t(state.tone + "Definition");
+  $("#result-heading").replaceChildren(
+    ...conclusionPoint(state.tone + "Definition", t, {}, "span").childNodes,
+  );
   paintSymbol(
     $("#result-icon"),
     state.tone === "hypo" ? "in" : state.tone === "hyper" ? "out" : "both",

@@ -809,6 +809,9 @@ input[type="range"] {
   color: #b32b2b;
   font-weight: 650;
 }
+#result-heading .key-point {
+  font-weight: inherit;
+}
 .prediction-feedback {
   font-size: 11px;
   border-top: 1px solid #cbdaba;

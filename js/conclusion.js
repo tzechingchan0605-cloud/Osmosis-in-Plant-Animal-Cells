@@ -1,5 +1,8 @@
 const highlights = {
   en: {
+    hypoDefinition: ["Hypotonic", "solute concentration"],
+    isoDefinition: ["Isotonic", "solute concentration"],
+    hyperDefinition: ["Hypertonic", "solute concentration"],
     hypoMovementNow: [
       "net",
       "into the cell",
@@ -45,6 +48,9 @@ const highlights = {
     finalEquilibriumNote: ["no net movement"],
   },
   zh: {
+    hypoDefinition: ["低", "溶質濃度"],
+    isoDefinition: ["等", "溶質濃度"],
+    hyperDefinition: ["高", "溶質濃度"],
     hypoMovementNow: ["淨", "進入細胞", "尚未達至平衡"],
     hyperMovementNow: ["淨", "離開細胞", "尚未達至平衡"],
     turgidNowDescription: ["硬脹"],
